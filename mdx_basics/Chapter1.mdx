@@ -1,0 +1,51 @@
+-- This script demonstrates how to query the "Adventure Works" cube using MDX, with a focus on various slices of data including sales measures and dimension data.
+
+-- Query to select all data from the "Adventure Works" cube.
+SELECT * FROM [Adventure Works];
+
+-- Query to select Reseller Sales Amount from "Adventure Works".
+SELECT [Measures].[Reseller Sales Amount] FROM [Adventure Works];
+
+-- Query to select Internet Sales Amount from "Adventure Works".
+SELECT [Measures].[Internet Sales Amount] FROM [Adventure Works];
+
+-- Query to display Reseller Sales Amount on columns.
+SELECT [Measures].[Reseller Sales Amount] ON COLUMNS FROM [Adventure Works];
+
+-- Query to display Calendar Year dimension data on columns.
+SELECT [Date].[Calendar].[Calendar Year] ON COLUMNS FROM [Adventure Works];
+
+-- Query to include Calendar Year and the entire Calendar dimension on columns.
+SELECT {[Date].[Calendar].[Calendar Year], [Date].[Calendar]} ON COLUMNS FROM [Adventure Works];
+
+-- Query to display Calendar Year and Product Category dimension data, mapping Calendar Year to columns and Category to rows.
+SELECT 
+    {[Date].[Calendar].[Calendar Year], [Date].[Calendar]} ON COLUMNS,
+    [Product].[Product Categories].[Category] ON ROWS
+FROM [Adventure Works];
+
+-- Query to include totals for Calendar Year and Product Categories.
+SELECT 
+    {[Date].[Calendar].[Calendar Year], [Date].[Calendar]} ON COLUMNS,
+    {[Product].[Product Categories].[Category], [Product].[Product Categories]} ON ROWS
+FROM [Adventure Works];
+
+-- Query to exclude rows with null values and show Calendar Year and Product Category.
+SELECT 
+    NON EMPTY {[Date].[Calendar].[Calendar Year], [Date].[Calendar]} ON COLUMNS,
+    NON EMPTY {[Product].[Product Categories].[Category], [Product].[Product Categories]} ON ROWS
+FROM [Adventure Works];
+
+-- Query to filter on Internet Sales Amount and display Calendar Year and Product Categories.
+SELECT 
+    {[Date].[Calendar].[Calendar Year], [Date].[Calendar]} ON COLUMNS,
+    {[Product].[Product Categories].[Category], [Product].[Product Categories]} ON ROWS
+FROM [Adventure Works]
+WHERE [Measures].[Internet Sales Amount];
+
+-- Query to hide null values and filter on Internet Sales Amount, mapping Calendar Year to columns and Product Categories to rows.
+SELECT 
+    NON EMPTY {[Date].[Calendar].[Calendar Year], [Date].[Calendar]} ON COLUMNS,
+    NON EMPTY {[Product].[Product Categories].[Category], [Product].[Product Categories]} ON ROWS
+FROM [Adventure Works]
+WHERE [Measures].[Internet Sales Amount];

@@ -1,0 +1,100 @@
+-- This MDX script enhances query readability and functionality in the Adventure Works cube.
+-- It includes dummy members for handling potential nulls, definitions of product category selections,
+-- and measures sets. It dynamically ranks and filters data across multiple dimensions.
+
+WITH 
+  -- Dummy members to handle empty selections or defaults in the cube analysis.
+  MEMBER [Product].[Product Categories].[Dummy] AS [Product].[Product Categories].DefaultMember,
+  MEMBER [Product].[Category].[Dummy] AS [Product].[Category].DefaultMember,
+  MEMBER [Date].[Calendar].[Dummy] AS [Date].[Calendar].DefaultMember,
+  MEMBER [Customer].[Customer Geography].[Dummy] AS [Customer].[Customer Geography].DefaultMember,
+  MEMBER [Measures].[Dummy] AS [Measures].DefaultMember,
+  
+  -- Selection sets for categories and measures.
+  SET [Product.Product Categories.Selection_0_0] AS 
+    {
+      [Product].[Product Categories].[Product].&[573],
+      [Product].[Product Categories].[Product].&[574],
+      [Product].[Product Categories].[Product].&[564],
+      [Product].[Product Categories].[Product].&[329],
+      [Product].[Product Categories].[Product].&[353]
+    },
+  SET [Product.Category.Selection_0_1] AS 
+    {[Product].[Category].&[1]},
+  SET [Product.Product Categories.Selection_1_0] AS 
+    {
+      [Product].[Product Categories].[Product].&[568],
+      [Product].[Product Categories].[Product].&[570],
+      [Product].[Product Categories].[Product].&[571],
+      [Product].[Product Categories].[Product].&[566],
+      [Product].[Product Categories].[Product].&[461],
+      [Product].[Product Categories].[Product].&[460],
+      [Product].[Product Categories].[Product].&[459]
+    },
+  SET [Date.Calendar.Selection_1_1] AS 
+    {[Date].[Calendar].[Calendar Year].&[2008]},
+  SET [Customer.Customer Geography.Selection_4_0] AS 
+    {[Customer].[Customer Geography].[Country].MEMBERS},
+  
+  -- Measure context for the cube operations.
+  SET [Measures.Selection_3_0] AS 
+    {
+      [Measures].[Reseller Sales Amount],
+      [Measures].[Internet Tax Amount],
+      [Measures].[Internet Order Quantity]
+    },
+
+  -- NonEmpty selections to ensure data integrity and avoid null values.
+  SET [Product.Product Categories.NonEmptySelection_0_0] AS 
+    NonEmpty([Product.Product Categories.Selection_0_0] * [Measures.Selection_3_0]),
+  SET [Product.Product Categories.NonEmptySelection_1_0] AS 
+    NonEmpty([Product.Product Categories.Selection_1_0] * [Date.Calendar.Selection_1_1] * [Measures.Selection_3_0]),
+  SET [Customer.Customer Geography.NonEmptySelection_4_0] AS 
+    NonEmpty([Customer.Customer Geography.Selection_4_0] * [Measures.Selection_3_0]),
+
+  -- Dynamic ranking based on context and selections.
+  MEMBER [Measures].[00Rank] AS 
+    IIF([Date].[Calendar].CurrentMember IS [Date].[Calendar].[Dummy], Rank([Product].[Product Categories].CurrentMember, [Product.Product Categories.NonEmptySelection_0_0]), 0),
+  MEMBER [Measures].[10Rank] AS Rank([Product].[Product Categories].CurrentMember, [Product.Product Categories.NonEmptySelection_1_0]),
+  MEMBER [Measures].[11Rank] AS Rank([Date].[Calendar].CurrentMember, [Customer.Customer Geography.NonEmptySelection_4_0]),
+  MEMBER [Measures].[20Rank] AS IIF([Product].[Product Categories].CurrentMember IS [Product].[Product Categories].[Dummy], Rank([Date].[Calendar].CurrentMember, [Date.Calendar.NonEmptySelection_2_0]), 0),
+
+  -- Helper measures to handle zero ranks and null values.
+  MEMBER [Measures].[00] AS IIF([Measures].[00Rank] = 0, NULL, [Measures].[00Rank]),
+  MEMBER [Measures].[10] AS IIF([Measures].[10Rank] = 0, NULL, [Measures].[10Rank]),
+  MEMBER [Measures].[11] AS IIF([Measures].[11Rank] = 0, NULL, [Measures].[11Rank]),
+  MEMBER [Measures].[20] AS IIF([Measures].[20Rank] = 0, NULL, [Measures].[20Rank])
+
+-- The final SELECT statement combines all the defined members and sets into a results set.
+SELECT 
+  NON EMPTY 
+    {
+      [Measures.Selection_3_0],
+      [Measures].[00],
+      [Measures].[10],
+      [Measures].[11],
+      [Measures].[20]
+    } ON COLUMNS,
+  NON EMPTY 
+    {
+      [Product.Product Categories.Selection_0_0] * [Date].[Calendar].[Dummy] * [Customer].[Customer Geography].[Dummy],
+      [Product.Product Categories.Selection_1_0] * [Date.Calendar.Selection_1_1] * [Customer.Customer Geography.Selection_4_0],
+      [Product].[Product Categories].[Dummy] * [Date.Calendar.Selection_2_0] * [Customer].[Customer Geography].[Dummy]
+    } ON ROWS
+FROM 
+  (
+    -- Nested subselects provide a specific context, focusing on certain resellers and customers.
+    SELECT 
+      [Reseller].[Reseller Bank].[Bank Name].Members ON COLUMNS
+    FROM 
+      (
+        SELECT 
+          [Customer].[Customer Geography].[Country].Members ON COLUMNS
+        FROM 
+          (
+            SELECT 
+              [Product].[Category].&[1] ON COLUMNS
+            FROM [Adventure Works]
+          )
+      )
+  );

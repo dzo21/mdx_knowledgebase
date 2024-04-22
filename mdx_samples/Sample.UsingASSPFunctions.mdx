@@ -1,0 +1,157 @@
+//TimeToCalculate returns the time taken in ticks to return the value displayed in a cell in a cellset.
+//The following example MDX query shows how it can be used in a calculated member:
+WITH 
+  MEMBER MEASURES.GETTIME AS 
+    ASSP.Timetocalculate(Measures.[Internet Sales Amount]) 
+  MEMBER MEASURES.TIMEPERCENT AS 
+    MEASURES.GETTIME / Sum(Axis(1),MEASURES.GETTIME) 
+   ,FORMAT_STRING = 'PERCENT' 
+  MEMBER [Date].[Day of Week].VERYBIGCALC AS 
+    Sum
+    (
+      [Date].[Date].[Date].MEMBERS * [Product].[Category].MEMBERS
+     ,Measures.[Internet Sales Amount]
+    ) 
+SELECT 
+  {
+    MEASURES.GETTIME
+   ,MEASURES.TIMEPERCENT
+  } ON 0
+ ,[Date].[Day of Week].ALLMEMBERS ON 1
+FROM [Adventure Works];
+
+WITH 
+  SET ToDateSet AS 
+    ASSP.Getefficientperiodstodateset
+    ("Calendar Year"
+     ,[Date].[Calendar].[Date].[November 3, 2003]
+    ) 
+  MEMBER [Measures].[Test] AS 
+    Sum
+    (
+      {ToDateSet}
+     ,[Measures].[Internet Sales Amount]
+    ) 
+SELECT 
+  {[Measures].[Test]} ON 0
+ ,NON EMPTY 
+    {
+        [Product].[Product].[Product].MEMBERS
+      * 
+        [Customer].[Country].[Country].MEMBERS
+    } ON 1
+FROM [Adventure Works];
+
+WITH 
+  SET ToDateSet AS 
+    ASSP.Getefficientperiodstodateset
+    ("Calendar Year"
+     ,[Date].[Calendar].[Date].[November 3, 2003]
+    ) 
+  MEMBER [Measures].[Test] AS 
+    Sum
+    (
+      {ToDateSet}
+     ,[Measures].[Internet Sales Amount]
+    ) 
+SELECT 
+  {[Measures].[Test]} ON 0
+ ,NON EMPTY 
+    {
+        [Product].[Product].[Product].MEMBERS
+      * 
+        [Customer].[Country].[Country].MEMBERS
+    } ON 1
+FROM [Adventure Works];
+
+WITH 
+  SET ToDateSet AS 
+    ASSP.Getefficientperiodstodateset
+    ("Calendar Year"
+     ,[Date].[Calendar].[Date].[November 3, 2003]
+    ) 
+  MEMBER [Measures].[Test] AS 
+    Sum
+    (
+      {ToDateSet}
+     ,[Measures].[Internet Sales Amount]
+    ) 
+SELECT 
+  {[Measures].[Test]} ON 0
+ ,NON EMPTY 
+    {
+        [Product].[Product].[Product].MEMBERS
+      * 
+        [Customer].[Country].[Country].MEMBERS
+    } ON 1
+FROM [Adventure Works];
+
+
+//GetEfficientToDateSet()
+//
+//This function returns the most efficient set representing all of time through the current member in the first Time dimension. If the first Time dimension contains more than one user-defined hierarchy, the hierarchy with the current member which is the most granular is chosen. (See GetMostGranularHierarchyCurrentMember below for more details.)
+//
+//This function is more flexible than GetEfficientPeriodsToDateSet because you do not have to specify a member. This flexibility could be handy in a situation where the Time dimension has more than one user-defined hierarchy (such as Calendar and Fiscal) by which an end user could slice the cube. Since it is not known in advance which hierarchy the end user will pick, this function could be used to correctly handle any slice they choose.
+WITH 
+  SET ToDateSet AS 
+    ASSP.GetEfficientToDateSet()
+  MEMBER [Measures].[Test] AS 
+    Sum
+    (
+      {ToDateSet}
+     ,[Measures].[Internet Sales Amount]
+    ) 
+SELECT 
+  {[Measures].[Test]} ON 0
+ ,NON EMPTY 
+    {
+        [Product].[Product].[Product].MEMBERS
+      * 
+        [Customer].[Country].[Country].MEMBERS
+    } ON 1
+FROM [Adventure Works];
+
+//GetEfficientToDateSet(MemberExpression)
+//
+//This signature of the GetEfficientToDateSet function takes in a valid MDX member expression parameter specifying the member for which the "to date" set should be calculated. This parameter makes this signature slightly less expensive because the system does not have to search for the Time dimension and the system does not have to search for the most granular current member. Otherwise, the function acts the same as GetEfficientToDateSet(), though it is not as flexible in the situation of a dimension having multiple user-defined hierarchies unless the member expression conditionally evaluates to a member in the appropriate hierarchy.
+WITH 
+  SET ToDateSet AS 
+    ASSP.GetEfficientToDateSet([Date].[Day of Month].&[15]) 
+  MEMBER [Measures].[Test] AS 
+    Sum
+    (
+      {ToDateSet}
+     ,[Measures].[Internet Sales Amount]
+    ) 
+SELECT 
+  {[Measures].[Test]} ON 0
+ ,NON EMPTY 
+    {
+        [Product].[Product].[Product].MEMBERS
+      * 
+        [Customer].[Country].[Country].MEMBERS
+    } ON 1
+FROM [Adventure Works];
+
+
+//GetEfficientYearToDateSet(MemberExpression)
+//
+//This function works similarly to GetEfficientToDateSet(MemberExpression) except that it returns the Year-To-Date set instead of the (all time) to date set. This function is less efficient than GetEfficientPeriodsToDateSet because it has to search for the year level in the hierarchy.
+WITH 
+  SET ToDateSet AS 
+    ASSP.GetEfficientYearToDateSet([Date].[Calendar Year].&[2008]) 
+  MEMBER [Measures].[Test] AS 
+    Sum
+    (
+      {ToDateSet}
+     ,[Measures].[Internet Sales Amount]
+    ) 
+SELECT 
+  {[Measures].[Test]} ON 0
+ ,NON EMPTY 
+    {
+        [Product].[Product].[Product].MEMBERS
+      * 
+        [Customer].[Country].[Country].MEMBERS
+    } ON 1
+FROM [Adventure Works];

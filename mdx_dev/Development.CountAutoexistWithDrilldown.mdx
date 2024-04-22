@@ -1,0 +1,48 @@
+-- Refactored MDX query to analyze product category and subcategory with sales measures in Adventure Works cube.
+-- Enhanced for clarity with detailed comments and structured definitions of members and sets.
+
+WITH 
+  -- Dummy members as placeholders to handle possible null scenarios in the cube structure.
+  MEMBER [Product].[Category].[Dummy] AS [Product].[Category].DefaultMember,
+  MEMBER [Product].[Subcategory].[Dummy] AS [Product].[Subcategory].DefaultMember,
+  MEMBER [Product].[Category].[EmptyRangeDummy] AS [Product].[Category].DefaultMember,
+  MEMBER [Product].[Subcategory].[EmptyRangeDummy] AS [Product].[Subcategory].DefaultMember,
+  MEMBER [Measures].[Dummy] AS [Measures].DefaultMember,
+  MEMBER [Measures].[EmptyRangeDummy] AS [Measures].DefaultMember,
+  
+  -- Defining a set of measures for sales analysis.
+  SET [Measures.Selection_0_0] AS {
+    [Measures].[Reseller Sales Amount]
+  },
+
+  -- Drilldowns to explore subcategories within specific product categories.
+  SET [DrillDownLevel.Product.Category.Selection] AS 
+    DrillDownLevel([Product].[Category].DefaultMember),
+  SET [DrillDownLevel.Product.Subcategory.Selection] AS 
+    DrillDownLevel([Product].[Subcategory].DefaultMember),
+
+  -- Using NonEmpty to filter out empty data and focus analysis on data that has sales.
+  SET [Product.Categories.NonEmpty.Selection] AS 
+    NonEmpty(
+      [DrillDownLevel.Product.Category.Selection] * [DrillDownLevel.Product.Subcategory.Selection] * [Measures.Selection_0_0]
+    ),
+
+  -- Count of non-empty selections to understand the spread of data across categories and subcategories.
+  MEMBER [Measures].[NonEmpty.Category.Count] AS 
+    [Product.Categories.NonEmpty.Selection].Count,
+  MEMBER [Measures].[NonEmpty.Subcategory.Count] AS 
+    Extract([Product.Categories.NonEmpty.Selection], [Product].[Subcategory]).Count
+
+SELECT 
+  -- Displaying calculated measures to analyze the effectiveness of sales across categories and subcategories.
+  {
+    [Measures].[NonEmpty.Category.Count],
+    [Measures].[NonEmpty.Subcategory.Count]
+  } ON COLUMNS,
+
+  -- Showing the non-empty data combinations to provide insights into sales distribution.
+  NON EMPTY {
+    [Product.Categories.NonEmpty.Selection]
+  } ON ROWS
+
+FROM [Adventure Works]; -- Specifying the cube from which to pull the data.

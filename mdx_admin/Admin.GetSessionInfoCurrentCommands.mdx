@@ -1,0 +1,54 @@
+-- Queries to monitor active, dormant, and blocked sessions, and to handle session cancellation in SQL Server Analysis Services (SSAS).
+
+-- Query to find active sessions showing SPID, CPU time, elapsed time, read and write statistics, and command text.
+-- It filters to show only sessions with elapsed time greater than zero and orders them by CPU time in descending order.
+SELECT 
+    SESSION_SPID, 
+    COMMAND_CPU_TIME_MS, 
+    COMMAND_ELAPSED_TIME_MS, 
+    COMMAND_READ_KB, 
+    COMMAND_WRITE_KB, 
+    COMMAND_TEXT 
+FROM $system.DISCOVER_COMMANDS 
+WHERE COMMAND_ELAPSED_TIME_MS > 0 
+ORDER BY COMMAND_CPU_TIME_MS DESC;
+
+-- Query to identify the top 25 dormant sessions based on idle time, showing user name, idle time, used memory, last command, and its end time.
+-- Filters sessions with status '0' (inactive) and orders by idle time in descending order.
+SELECT TOP 25 
+    SESSION_SPID, 
+    SESSION_USER_NAME,
+    SESSION_IDLE_TIME_MS, 
+    SESSION_USED_MEMORY, 
+    SESSION_LAST_COMMAND, 
+    SESSION_LAST_COMMAND_END_TIME, 
+    SESSION_ID 
+FROM $system.DISCOVER_SESSIONS 
+WHERE SESSION_STATUS = 0 
+ORDER BY SESSION_IDLE_TIME_MS DESC;
+
+-- Query to find blocked sessions, displaying session SPID, user name, start time, elapsed time, CPU time, and session ID.
+-- Filters sessions with status '2' (blocked) and sorts by user name in descending order.
+SELECT 
+    SESSION_SPID,
+    SESSION_USER_NAME,
+    SESSION_START_TIME, 
+    SESSION_ELAPSED_TIME_MS, 
+    SESSION_CPU_TIME_MS,
+    SESSION_ID 
+FROM $SYSTEM.DISCOVER_SESSIONS 
+WHERE SESSION_STATUS = 2 
+ORDER BY SESSION_USER_NAME DESC;
+
+-- XMLA command structure to cancel a specific session using its SessionID and SPID.
+-- It is used to manually cancel sessions that are not responding or are deemed unnecessary.
+<Cancel xmlns="http://schemas.microsoft.com/analysisservices/2003/engine">
+    <SessionID>0A2E8599-08AD-423D-B660-B4A024FE22C7</SessionID>
+    <SPID>4406</SPID>
+    <CancelAssociated>false</CancelAssociated>
+</Cancel>;
+
+-- Query to retrieve all details from a session using its SPID, useful for deep inspection of specific sessions.
+SELECT * 
+FROM $SYSTEM.DISCOVER_SESSIONS
+WHERE SESSION_SPID = '5856';

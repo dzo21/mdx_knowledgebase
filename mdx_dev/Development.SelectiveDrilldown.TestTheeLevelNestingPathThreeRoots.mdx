@@ -1,0 +1,224 @@
+WITH 
+  SET [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_1] AS 
+    {
+      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
+    } 
+  SET [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_2] AS 
+    {
+      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
+    } 
+  SET [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_3] AS 
+    {
+      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
+    } 
+  SET [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_4] AS 
+    {
+      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
+    } 
+  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_1] AS 
+    {
+      DrillDownMember
+      (
+        {
+          DrillDownLevel({[Product].[Product Categories].DefaultMember})
+        }
+       ,{[Product].[Product Categories].[Category].&[1]}
+       ,RECURSIVE
+      )
+    } 
+  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_2] AS 
+    {
+      DrillDownMember
+      (
+        {
+          DrillDownLevel({[Product].[Product Categories].DefaultMember})
+        }
+       ,{[Product].[Product Categories].[Category].&[1]}
+       ,RECURSIVE
+      )
+    } 
+  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_3] AS 
+    {
+      DrillDownMember
+      (
+        {
+          DrillDownLevel({[Product].[Product Categories].DefaultMember})
+        }
+       ,{[Product].[Product Categories].[Category].&[1]}
+       ,RECURSIVE
+      )
+    } 
+  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_4] AS 
+    {
+      DrillDownMember
+      (
+        {
+          DrillDownLevel({[Product].[Product Categories].DefaultMember})
+        }
+       ,{[Product].[Product Categories].[Category].&[1]}
+       ,RECURSIVE
+      )
+    } 
+  SET [Measures.Selection_0_0] AS 
+    {[Measures].[Internet Order Quantity]} 
+  SET [DrillDownLevel.Date.Calendar.Selection_1_0] AS 
+    {DrillDownLevel({[Date].[Calendar].DefaultMember})} 
+  SET [DrillDownLevel.Customer.Customer Geography.Selection_1_1] AS 
+    {
+      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
+    } 
+  SET [DrillDownLevel.Product.Product Categories.Selection_1_2] AS 
+    {
+      DrillDownMember
+      (
+        {
+          DrillDownLevel({[Product].[Product Categories].DefaultMember})
+        }
+       ,{[Product].[Product Categories].[Category].&[1]}
+       ,RECURSIVE
+      )
+    } 
+SELECT 
+  {[Measures.Selection_0_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {
+      Generate
+      (
+        [DrillDownLevel.Date.Calendar.Selection_1_0]
+       ,IIF
+        (
+            [Date].[Calendar].CurrentMember
+          IS 
+            [Date].[Calendar].[Calendar Year].&[2008]
+         ,Generate
+          (
+            [Date].[Calendar].CurrentMember
+           ,Generate
+            (
+              [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_1]
+             ,IIF
+              (
+                  [Customer].[Customer Geography].CurrentMember
+                IS 
+                  [Customer].[Customer Geography].[Country].&[Germany]
+               ,Generate
+                (
+                  [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_1]
+                 ,
+                    {[Date].[Calendar].CurrentMember}*
+                    {[Customer].[Customer Geography].CurrentMember}*
+                    {[Product].[Product Categories].CurrentMember}
+                )
+               ,
+                  {[Date].[Calendar].CurrentMember}*
+                  {[Customer].[Customer Geography].CurrentMember}*
+                  {[Product].[Product Categories].DefaultMember}
+              )
+            )
+          )
+         ,IIF
+          (
+              [Date].[Calendar].CurrentMember
+            IS 
+              [Date].[Calendar].[Calendar Year].&[2007]
+           ,Generate
+            (
+              [Date].[Calendar].CurrentMember
+             ,Generate
+              (
+                [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_2]
+               ,IIF
+                (
+                    [Customer].[Customer Geography].CurrentMember
+                  IS 
+                    [Customer].[Customer Geography].[Country].&[Germany]
+                 ,Generate
+                  (
+                    [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_2]
+                   ,
+                      {[Date].[Calendar].CurrentMember}*
+                      {[Customer].[Customer Geography].CurrentMember}*
+                      {[Product].[Product Categories].CurrentMember}
+                  )
+                 ,
+                    {[Date].[Calendar].CurrentMember}*
+                    {[Customer].[Customer Geography].CurrentMember}*
+                    {[Product].[Product Categories].DefaultMember}
+                )
+              )
+            )
+           ,IIF
+            (
+                [Date].[Calendar].CurrentMember
+              IS 
+                [Date].[Calendar].[Calendar Year].&[2006]
+             ,Generate
+              (
+                [Date].[Calendar].CurrentMember
+               ,Generate
+                (
+                  [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_3]
+                 ,IIF
+                  (
+                      [Customer].[Customer Geography].CurrentMember
+                    IS 
+                      [Customer].[Customer Geography].[Country].&[Germany]
+                   ,Generate
+                    (
+                      [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_3]
+                     ,
+                        {[Date].[Calendar].CurrentMember}*
+                        {[Customer].[Customer Geography].CurrentMember}*
+                        {[Product].[Product Categories].CurrentMember}
+                    )
+                   ,
+                      {[Date].[Calendar].CurrentMember}*
+                      {[Customer].[Customer Geography].CurrentMember}*
+                      {[Product].[Product Categories].DefaultMember}
+                  )
+                )
+              )
+             ,IIF
+              (
+                  [Date].[Calendar].CurrentMember
+                IS 
+                  [Date].[Calendar].[Calendar Year].&[2005]
+               ,Generate
+                (
+                  [Date].[Calendar].CurrentMember
+                 ,Generate
+                  (
+                    [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_4]
+                   ,IIF
+                    (
+                        [Customer].[Customer Geography].CurrentMember
+                      IS 
+                        [Customer].[Customer Geography].[Country].&[Germany]
+                     ,Generate
+                      (
+                        [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_4]
+                       ,
+                          {[Date].[Calendar].CurrentMember}*
+                          {[Customer].[Customer Geography].CurrentMember}*
+                          {[Product].[Product Categories].CurrentMember}
+                      )
+                     ,
+                        {[Date].[Calendar].CurrentMember}*
+                        {[Customer].[Customer Geography].CurrentMember}*
+                        {[Product].[Product Categories].DefaultMember}
+                    )
+                  )
+                )
+               ,
+                  {[Date].[Calendar].CurrentMember}*
+                  {[Customer].[Customer Geography].DefaultMember}*
+                  {[Product].[Product Categories].DefaultMember}
+              )
+            )
+          )
+        )
+      )
+    }
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM [Adventure Works];

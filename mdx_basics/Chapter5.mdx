@@ -1,0 +1,92 @@
+-- This MDX script enhances the analysis of sales data within the "Adventure Works" cube by utilizing filters, sorting, and aggregation functions.
+
+-- Query to display Internet Sales Amount by Product Subcategories without any filter or order.
+SELECT
+    [Measures].[Internet Sales Amount]
+    ON COLUMNS,
+    [Product].[Product Categories].[Subcategory]
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Order Product Subcategories by Internet Sales Amount in ascending order.
+SELECT
+    [Measures].[Internet Sales Amount]
+    ON COLUMNS,
+    ORDER([Product].[Subcategory].[Subcategory], [Measures].[Internet Sales Amount], ASC)
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Filter by specific geographic locations such as Canada, displaying data for both Internet and Reseller Sales Amounts.
+SELECT
+    {[Measures].[Internet Sales Amount], [Measures].[Reseller Sales Amount]}
+    ON COLUMNS,
+    FILTER([Product].[Product Categories].[Category], [Customer].[Customer Geography].[Country].[Canada] AND [Measures].[Internet Sales Amount] > 0)
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Demonstrating the use of logical operators in filtering, showcasing products that meet specific sales criteria.
+SELECT
+    {[Measures].[Internet Sales Amount], [Measures].[Reseller Sales Amount]}
+    ON COLUMNS,
+    FILTER(
+        [Product].[Product Categories].[Category],
+        ([Measures].[Internet Sales Amount] > 750000 OR [Measures].[Internet Sales Amount] < 500000) AND [Measures].[Reseller Sales Amount] < 15000000
+    )
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Comparing Internet Sales Amount to Reseller Sales Amount to identify categories where internet sales exceed reseller sales.
+SELECT
+    {[Measures].[Internet Sales Amount], [Measures].[Reseller Sales Amount]}
+    ON COLUMNS,
+    FILTER(
+        [Product].[Product Categories].[Category],
+        [Measures].[Internet Sales Amount] > [Measures].[Reseller Sales Amount]
+    )
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Utilizing ranking functions to display top and bottom categories based on sales, adjusting the count based on the total sales amount.
+-- Displaying top 5 subcategories by Reseller Sales Amount.
+SELECT
+    [Measures].[Internet Sales Amount]
+    ON COLUMNS,
+    TOPCOUNT(
+        [Product].[Product Categories].[Subcategory], 
+        5, 
+        [Measures].[Reseller Sales Amount]
+    )
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Displaying the bottom 30 subcategories by Internet Sales Amount, but only those with non-null values.
+SELECT
+    [Measures].[Internet Sales Amount]
+    ON COLUMNS,
+    NON EMPTY BOTTOMCOUNT(
+        [Product].[Product Categories].[Subcategory],
+        30,
+        [Measures].[Internet Sales Amount]
+    )
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Calculating the top percentile of subcategories that together account for 99% of Internet Sales Amount.
+SELECT
+    [Measures].[Internet Sales Amount]
+    ON COLUMNS,
+    TOPPERCENT(
+        [Product].[Product Categories].[Subcategory], 
+        99, 
+        [Measures].[Internet Sales Amount]
+    )
+    ON ROWS
+FROM
+    [Adventure Works];

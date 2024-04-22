@@ -1,0 +1,140 @@
+-- Retrieves enumerators from the system catalog. Useful for understanding the metadata and capabilities of the SSAS environment.
+SELECT * FROM $system.DISCOVER_ENUMERATORS;
+
+-- Retrieves all cubes within the database, showing only those designated as base cubes.
+-- This query aids in understanding the structure and number of cubes in the database.
+SELECT 
+    [CATALOG_NAME] AS [DATABASE],
+    CUBE_CAPTION AS [CUBE/PERSPECTIVE],
+    BASE_CUBE_NAME
+FROM $system.MDSchema_Cubes
+WHERE CUBE_SOURCE = 1;
+
+-- Lists all dimensions within the "Adventure Works" cube, excluding the 'Measures' dimension, sorted by dimension caption.
+-- This provides a clearer view of the dimensions involved in the cube for better analysis and management.
+SELECT 
+    [CATALOG_NAME] AS [DATABASE],
+    CUBE_NAME AS [CUBE],
+    DIMENSION_CAPTION AS [DIMENSION]
+FROM $system.MDSchema_Dimensions
+WHERE CUBE_NAME = 'Adventure Works' AND DIMENSION_CAPTION <> 'Measures'
+ORDER BY DIMENSION_CAPTION;
+
+-- Retrieves all attributes within the "Adventure Works" cube, showing their visibility status and sorted by dimension unique name.
+-- It includes the display folder and hierarchy caption for better organization.
+SELECT 
+    [CATALOG_NAME] AS [DATABASE],
+    CUBE_NAME AS [CUBE],
+    [DIMENSION_UNIQUE_NAME] AS [DIMENSION],
+    HIERARCHY_DISPLAY_FOLDER AS [FOLDER],
+    HIERARCHY_CAPTION AS [DIMENSION ATTRIBUTE],
+    HIERARCHY_IS_VISIBLE AS [VISIBLE]
+FROM $system.MDSchema_hierarchies
+WHERE CUBE_NAME = 'Adventure Works' AND HIERARCHY_ORIGIN = 2
+ORDER BY [DIMENSION_UNIQUE_NAME];
+
+-- Fetches detailed attribute information for the "Adventure Works" cube, including SQL column names for attribute key and name.
+-- Sorted by dimension unique name, it helps in identifying how attributes are stored in the database.
+SELECT 
+    [CATALOG_NAME] AS [DATABASE],
+    CUBE_NAME AS [CUBE],
+    [DIMENSION_UNIQUE_NAME] AS [DIMENSION],
+    LEVEL_CAPTION AS [ATTRIBUTE],
+    [LEVEL_NAME_SQL_COLUMN_NAME] AS [ATTRIBUTE_NAME_SQL_COLUMN_NAME],
+    [LEVEL_KEY_SQL_COLUMN_NAME] AS [ATTRIBUTE_KEY_SQL_COLUMN_NAME]
+FROM $system.MDSchema_levels
+WHERE CUBE_NAME = 'Adventure Works' AND level_origin = 2 AND LEVEL_NAME <> '(All)'
+ORDER BY [DIMENSION_UNIQUE_NAME];
+
+-- Extracts details of user-defined hierarchies in the "Adventure Works" cube, including visibility status.
+-- It is sorted by dimension unique name to facilitate easy navigation and comprehension of hierarchical structures.
+SELECT 
+    [CATALOG_NAME] AS [DATABASE],
+    CUBE_NAME AS [CUBE],
+    [DIMENSION_UNIQUE_NAME] AS [DIMENSION],
+    HIERARCHY_DISPLAY_FOLDER AS [FOLDER],
+    HIERARCHY_CAPTION AS [HIERARCHY],
+    HIERARCHY_IS_VISIBLE AS [VISIBLE]
+FROM $system.MDSchema_hierarchies
+WHERE CUBE_NAME = 'Adventure Works' AND HIERARCHY_ORIGIN = 1
+ORDER BY [DIMENSION_UNIQUE_NAME];
+
+-- Fetches details of parent-child hierarchies in "Adventure Works", indicating the visibility of hierarchies.
+-- Organized by dimension unique name for clarity.
+SELECT 
+    [CATALOG_NAME] AS [DATABASE],
+    CUBE_NAME AS [CUBE],
+    [DIMENSION_UNIQUE_NAME] AS [DIMENSION],
+    HIERARCHY_DISPLAY_FOLDER AS [FOLDER],
+    HIERARCHY_CAPTION AS [HIERARCHY],
+    HIERARCHY_IS_VISIBLE AS [VISIBLE]
+FROM $system.MDSchema_hierarchies
+WHERE CUBE_NAME = 'Adventure Works' AND HIERARCHY_ORIGIN = 3
+ORDER BY [DIMENSION_UNIQUE_NAME];
+
+-- Provides a comprehensive list of all levels in user-defined hierarchies for "Adventure Works", including SQL columns for unique names and keys.
+-- Sorted by dimension unique name, it offers a deep dive into the hierarchy levels for detailed analysis.
+SELECT 
+    [CATALOG_NAME] AS [DATABASE],
+    CUBE_NAME AS [CUBE],
+    [DIMENSION_UNIQUE_NAME] AS [DIMENSION],
+    [HIERARCHY_UNIQUE_NAME] AS [HIERARCHY],
+    LEVEL_CAPTION AS [LEVEL],
+    [LEVEL_NAME],
+    [LEVEL_NUMBER] AS [LEVEL NUMBER],
+    [LEVEL_NAME_SQL_COLUMN_NAME] AS [NAME_COLUMN],
+    [LEVEL_UNIQUE_NAME_SQL_COLUMN_NAME] AS [UNIQUE_NAME_COLUMN],
+    [LEVEL_KEY_SQL_COLUMN_NAME] AS [KEY_COLUMN]
+FROM $system.MDSchema_levels
+WHERE CUBE_NAME = 'Adventure Works' AND level_origin = 1
+ORDER BY [DIMENSION_UNIQUE_NAME];
+
+-- Retrieves levels of parent-child hierarchies in "Adventure Works", providing detailed information on hierarchy levels.
+-- The ordering by dimension unique name facilitates better understanding and management of hierarchical data.
+SELECT 
+    [CATALOG_NAME] AS [DATABASE],
+    CUBE_NAME AS [CUBE],
+    [DIMENSION_UNIQUE_NAME] AS [DIMENSION],
+    [HIERARCHY_UNIQUE_NAME] AS [HIERARCHY],
+    LEVEL_CAPTION AS [LEVEL],
+    [LEVEL_NAME],
+    [LEVEL_NUMBER] AS [LEVEL NUMBER],
+    [LEVEL_NAME_SQL_COLUMN_NAME] AS [NAME_COLUMN],
+    [LEVEL_UNIQUE_NAME_SQL_COLUMN_NAME] AS [UNIQUE_NAME_COLUMN],
+    [LEVEL_KEY_SQL_COLUMN_NAME] AS [KEY_COLUMN]
+FROM $system.MDSchema_levels
+WHERE CUBE_NAME = 'Adventure Works' AND LEVEL_ORIGIN = 3
+ORDER BY [DIMENSION_UNIQUE_NAME];
+
+-- Lists all measures in "Adventure Works", sorted by measure group name to help in analyzing measure distribution and organization.
+SELECT 
+    [CATALOG_NAME] AS [DATABASE],
+    CUBE_NAME AS [CUBE],
+    [MEASUREGROUP_NAME] AS [FOLDER],
+    [MEASURE_CAPTION] AS [MEASURE],
+    [MEASURE_IS_VISIBLE]
+FROM $SYSTEM.MDSCHEMA_MEASURES
+WHERE CUBE_NAME = 'Adventure Works'
+ORDER BY [MEASUREGROUP_NAME];
+
+-- Retrieves all calculated measures/members in "Adventure Works", showing their definitions and captions.
+-- Useful for understanding custom calculations and their implementations within the cube.
+SELECT 
+    [MEMBER_UNIQUE_NAME] AS [CALCULATED_MEASURE],
+    [MEMBER_CAPTION] AS [CAPTION],
+    [EXPRESSION]
+FROM $system.MDSCHEMA_MEMBERS
+WHERE CUBE_NAME = 'Adventure Works' AND [MEMBER_TYPE] = 4; -- MDMEMBER_TYPE_FORMULA
+
+-- Displays the relationship and usage statistics between dimensions and fact tables in the "Internet Sales" measure group of "Adventure Works".
+-- This query is crucial for understanding the data modeling and relationship integrity within the measure group.
+SELECT 
+    [MEASUREGROUP_NAME] AS [MEASUREGROUP],
+    [MEASUREGROUP_CARDINALITY],
+    [DIMENSION_UNIQUE_NAME] AS [DIM],
+    [DIMENSION_GRANULARITY] AS [DIM_KEY],
+    [DIMENSION_CARDINALITY],
+    [DIMENSION_IS_VISIBLE] AS [IS_VISIBLE],
+    [DIMENSION_IS_FACT_DIMENSION] AS [IS_FACT_DIM]
+FROM $system.MDSCHEMA_MEASUREGROUP_DIMENSIONS
+WHERE [CUBE_NAME] = 'Adventure Works' AND [MEASUREGROUP_NAME] = 'Internet Sales';

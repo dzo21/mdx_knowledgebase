@@ -1,0 +1,138 @@
+WITH 
+  MEMBER [Product].[Product Categories].[Dummy] AS 
+    [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Calendar].[Dummy] AS 
+    [Date].[Calendar].DefaultMember 
+  MEMBER [Customer].[Customer Geography].[Dummy] AS 
+    [Customer].[Customer Geography].DefaultMember 
+  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS 
+    [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
+    [Date].[Calendar].DefaultMember 
+  MEMBER [Customer].[Customer Geography].[EmptyRangeDummy] AS 
+    [Customer].[Customer Geography].DefaultMember 
+  SET [Product.Product Categories.Selection_0_0] AS 
+    {
+     
+	 {DrillDownLevel({[Product].[Product Categories].DefaultMember})},
+	 {[Product].[Product Categories].[Subcategory].&[7]},
+	  {[Product].[Product Categories].[Subcategory].&[31]}
+     ,{[Product].[Product Categories].[Subcategory].&[23]}
+     ,{[Product].[Product Categories].[Subcategory].&[10]}
+    } 
+  SET [Date.Calendar.Selection_0_1] AS 
+    {
+      {[Date].[Calendar].[Calendar Year].&[2007]}
+     ,{[Date].[Calendar].[Calendar Year].&[2008]}
+    } 
+  SET [Customer.Customer Geography.Selection_0_2] AS 
+    {
+      {[Customer].[Customer Geography].[Country].&[Canada]}
+     ,{[Customer].[Customer Geography].[Country].&[France]}
+     ,{[Customer].[Customer Geography].[Country].&[Germany]}
+    } 
+  SET [ExtractSelection_0_0] AS 
+    {
+      Extract
+      (
+        NonEmpty
+        (
+          [Product.Product Categories.Selection_0_0] * [Measures].DefaultMember
+        )
+       ,[Product].[Product Categories]
+      )
+    } 
+  SET [ExtractSelection_0_1] AS 
+    {
+      Extract
+      (
+        NonEmpty([Date.Calendar.Selection_0_1] * [Measures].DefaultMember)
+       ,[Date].[Calendar]
+      )
+    } 
+  SET [ExtractSelection_0_2] AS 
+    {
+      Extract
+      (
+        NonEmpty
+        (
+          [Customer.Customer Geography.Selection_0_2] * [Measures].DefaultMember
+        )
+       ,[Customer].[Customer Geography]
+      )
+    } 
+  MEMBER [Measures].[Rank_00] AS 
+    IIF
+    (
+      TRUE
+     ,Rank
+      (
+        [Product].[Product Categories].CurrentMember
+       ,[ExtractSelection_0_0]
+      )
+     ,0
+    ) 
+  MEMBER [Measures].[Rank_01] AS 
+    IIF
+    (
+      TRUE
+     ,Rank
+      (
+        [Date].[Calendar].CurrentMember
+       ,[ExtractSelection_0_1]
+      )
+     ,0
+    ) 
+  MEMBER [Measures].[Rank_02] AS 
+    IIF
+    (
+      TRUE
+     ,Rank
+      (
+        [Customer].[Customer Geography].CurrentMember
+       ,[ExtractSelection_0_2]
+      )
+     ,0
+    ) 
+  MEMBER [Measures].[00] AS 
+    IIF
+    (
+      [Measures].[Rank_00] = 0
+     ,NULL
+     ,[Measures].[Rank_00]
+    ) 
+  MEMBER [Measures].[01] AS 
+    IIF
+    (
+      [Measures].[Rank_01] = 0
+     ,NULL
+     ,[Measures].[Rank_01]
+    ) 
+  MEMBER [Measures].[02] AS 
+    IIF
+    (
+      [Measures].[Rank_02] = 0
+     ,NULL
+     ,[Measures].[Rank_02]
+    ) 
+SELECT 
+  NON EMPTY 
+    {
+      [Measures].[00]
+     ,[Measures].[01]
+     ,[Measures].[02]
+	  
+	  
+    } ON 0
+ ,NON EMPTY 
+    {
+      NonEmpty
+      (
+          {[ExtractSelection_0_0]}*
+          {[ExtractSelection_0_1]}*
+          {[ExtractSelection_0_2]}
+      )
+    } dimension properties [PARENT_UNIQUE_NAME] ON 1
+FROM [Adventure Works]
+WHERE 
+  {[Reseller].[Reseller Type].[Business Type].&[Warehouse]};

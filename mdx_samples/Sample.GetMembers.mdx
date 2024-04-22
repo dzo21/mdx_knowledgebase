@@ -1,0 +1,76 @@
+SELECT 
+  [Date].[Calendar].MEMBERS
+  DIMENSION PROPERTIES 
+    PARENT_UNIQUE_NAME
+   ,MEMBER_TYPE
+   ON 0
+ ,NULL ON 1
+FROM [Adventure Works];
+
+
+-- how to explore members
+
+SELECT 
+  SubSet
+  (
+    [Date].[Calendar].[Calendar Quarter].ALLMEMBERS
+   ,0
+   ,1001
+  )
+  DIMENSION PROPERTIES 
+    MEMBER_NAME
+   ,MEMBER_TYPE
+   ON 0
+ ,{} ON 1
+FROM [Adventure Works];
+
+-- dim browse
+
+SELECT 
+  Head
+  (
+    [Date].[Calendar].Levels(0).MEMBERS
+   ,1000
+  ) ON 0
+FROM [$Date];
+
+
+--- erstes aufklappen
+
+WITH 
+  MEMBER [Measures].[-DimBrowseLevelKey 0-] AS 
+    [Date].[Calendar].CurrentMember.Properties("key0"
+   ,TYPED) 
+SELECT 
+  {[Measures].[-DimBrowseLevelKey 0-]} ON 0
+ ,Head
+  (
+    [Date].[Calendar].[All Periods].Children
+   ,1000
+  ) ON 1
+FROM [$Date]
+CELL PROPERTIES VALUE;
+
+-- zweites aufklappen
+
+WITH 
+  MEMBER [Measures].[-DimBrowseLevelKey 0-] AS 
+    [Date].[Calendar].CurrentMember.Properties("key0"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseLevelKey 1-] AS 
+    [Date].[Calendar].CurrentMember.Properties("key1"
+   ,TYPED) 
+SELECT 
+  {
+    [Measures].[-DimBrowseLevelKey 0-]
+   ,[Measures].[-DimBrowseLevelKey 1-]
+  } ON 0
+ ,Head
+  (
+    [Date].[Calendar].[Calendar Year].&[2008].Children
+   ,1000
+  ) ON 1
+FROM [$Date]
+CELL PROPERTIES VALUE;
+
+

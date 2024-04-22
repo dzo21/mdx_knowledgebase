@@ -1,0 +1,75 @@
+-- This MDX script is designed to analyze product categories and sales data in the Adventure Works cube,
+-- integrating detailed counts for hierarchy levels, tuple counts, and measures within specified dimensions.
+
+WITH 
+  -- Define dummy members for use in the cube when there are no suitable members in dimensions.
+  MEMBER [Product].[Product Categories].[Dummy] AS [Product].[Product Categories].DefaultMember,
+  MEMBER [Date].[Calendar].[Dummy] AS [Date].[Calendar].DefaultMember,
+  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS [Product].[Product Categories].DefaultMember,
+  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS [Date].[Calendar].DefaultMember,
+  MEMBER [Measures].[Dummy] AS [Measures].DefaultMember,
+  MEMBER [Measures].[EmptyRangeDummy] AS [Measures].DefaultMember,
+
+  -- Define selection sets based on product categories and dates.
+  SET [Product.Product Categories.Selection_0_0] AS {
+    [Product].[Product Categories].[Subcategory].&[31],
+    [Product].[Product Categories].[Subcategory].&[23]
+  },
+  SET [Product.Product Categories.Selection_1_0] AS 
+    [Product].[Product Categories].[Subcategory].MEMBERS,
+  SET [Date.Calendar.Selection_1_1] AS 
+    {[Date].[Calendar].[Calendar Year].&[2008]},
+  SET [Date.Calendar.Selection_2_0] AS 
+    [Date].[Calendar].[Calendar Year].MEMBERS,
+  SET [Measures.Selection_3_0] AS 
+    {[Measures].[Reseller Sales Amount]},
+
+  -- Count the members in the selection sets.
+  MEMBER [Product].[Product Categories].[Product.Product Categories.Selection_0_0.Count] AS 
+    Count([Product.Product Categories.Selection_0_0]),
+  MEMBER [Product].[Product Categories].[Product.Product Categories.Selection_1_0.Count] AS 
+    Count([Product.Product Categories.Selection_1_0]),
+  MEMBER [Date].[Calendar].[Date.Calendar.Selection_1_1.Count] AS 
+    Count([Date.Calendar.Selection_1_1]),
+  MEMBER [Date].[Calendar].[Date.Calendar.Selection_2_0.Count] AS 
+    Count([Date.Calendar.Selection_2_0]),
+  MEMBER [Measures].[Measures.Selection_3_0.Count] AS 
+    Count([Measures.Selection_3_0]),
+
+  -- Define measures for assessing ranking within filtered selections.
+  MEMBER [Measures].[00Rank] AS 
+    IIf([Date].[Calendar].CurrentMember IS [Date].[Calendar].[Dummy],
+        Rank([Product].[Product Categories].CurrentMember, [Product.Product Categories.Selection_0_0]),
+        NULL),
+  MEMBER [Measures].[10Rank] AS 
+    Rank([Product].[Product Categories].CurrentMember, [Product.Product Categories.Selection_1_0]),
+  MEMBER [Measures].[11Rank] AS 
+    Rank([Date].[Calendar].CurrentMember, [Date.Calendar.Selection_1_1]),
+  MEMBER [Measures].[20Rank] AS 
+    IIf([Product].[Product Categories].CurrentMember IS [Product].[Product Categories].[Dummy],
+        Rank([Date].[Calendar].CurrentMember, [Date.Calendar.Selection_2_0]),
+        NULL)
+
+-- The final SELECT statement integrates all members and measures into a coherent query output.
+SELECT 
+  NON EMPTY {
+    [Measures.Selection_3_0],
+    [Measures].[00Rank],
+    [Measures].[10Rank],
+    [Measures].[11Rank],
+    [Measures].[20Rank]
+  } ON COLUMNS,
+  NON EMPTY {
+    [Product.Product Categories.Selection_0_0] * [Date].[Calendar].[Dummy],
+    [Product.Product Categories.Selection_1_0] * [Date.Calendar.Selection_1_1],
+    [Product].[Product Categories].[Dummy] * [Date.Calendar.Selection_2_0]
+  } ON ROWS
+FROM (
+  SELECT 
+    [Reseller].[Reseller Bank].[Bank Name].Members ON COLUMNS
+  FROM (
+    SELECT 
+      [Customer].[Customer Geography].[Country].Members ON COLUMNS
+    FROM [Adventure Works]
+  )
+);

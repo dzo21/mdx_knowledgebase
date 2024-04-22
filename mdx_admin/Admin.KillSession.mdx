@@ -1,0 +1,18 @@
+-- This script provides a comprehensive overview of all active connections and sessions on a SQL Server Analysis Services (SSAS) instance,
+-- and includes an XMLA command template to cancel specific sessions or commands if necessary.
+
+-- Query to retrieve all active connections to the SSAS instance, including detailed statistics about each connection.
+SELECT * 
+FROM $SYSTEM.DISCOVER_CONNECTIONS; -- Retrieves ConnectionID and other connection details.
+
+-- Query to fetch all active sessions in the SSAS database. This can be linked to the connections data using the SESSION_CONNECTION_ID column.
+SELECT * 
+FROM $SYSTEM.DISCOVER_SESSIONS; -- Provides comprehensive session details, useful for analysis and management.
+
+-- XMLA template to cancel a session or command by providing the ConnectionID, SessionID, and SPID. Set 'CancelAssociated' to 'true' to cancel all associated processes.
+<Cancel xmlns="http://schemas.microsoft.com/analysisservices/2003/engine">
+    <ConnectionID>insert the connection id</ConnectionID>
+    <SessionID>insert the session id</SessionID>
+    <SPID>insert the spid</SPID>
+    <CancelAssociated>true</CancelAssociated>
+</Cancel>;

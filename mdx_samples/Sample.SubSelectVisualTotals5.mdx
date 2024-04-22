@@ -1,0 +1,153 @@
+WITH 
+  MEMBER [Date].[Fiscal].[Dummy] AS 
+    Aggregate([Date].[Fiscal].DefaultMember.Children) 
+  MEMBER [Product].[Product Categories].[Dummy] AS 
+    Aggregate([Product].[Product Categories].DefaultMember.Children) 
+  MEMBER [Employee].[Employees].[Dummy] AS 
+    Aggregate([Employee].[Employees].DefaultMember.Children) 
+  MEMBER [Geography].[Geography].[Dummy] AS 
+    Aggregate([Geography].[Geography].DefaultMember.Children) 
+  SET [Date.Fiscal.Selection_0_0] AS 
+    {
+      [Date].[Fiscal].[All Periods]
+     ,[Date].[Fiscal].[Fiscal Year].&[2007]
+     ,[Date].[Fiscal].[Fiscal Year].&[2008]
+     ,[Date].[Fiscal].[Fiscal Year].&[2009]
+    } 
+  SET [Product.Product Categories.Selection_1_0] AS 
+    {
+      [Product].[Product Categories].[All Products]
+     ,[Product].[Product Categories].[Subcategory].&[20]
+     ,[Product].[Product Categories].[Subcategory].&[34]
+     ,[Product].[Product Categories].[Subcategory].&[4]
+     ,[Product].[Product Categories].[Subcategory].&[15]
+    } 
+  SET [Employee.Employees.Selection_2_0] AS 
+    {[Employee].[Employees].[All Employees]} 
+  SET [Geography.Geography.Selection_3_0] AS 
+    {
+      [Geography].[Geography].[Country].&[France]
+     ,[Geography].[Geography].[Country].&[Germany]
+     ,[Geography].[Geography].[Country].&[United Kingdom]
+     ,[Geography].[Geography].[Country].&[United States]
+    } 
+SELECT 
+  NON EMPTY 
+    {
+      {
+        [Date.Fiscal.Selection_0_0] * {[Product].[Product Categories].[Dummy]}
+      }
+     ,{
+        {[Date].[Fiscal].[Dummy]} * [Product.Product Categories.Selection_1_0]
+      }
+    }
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {
+      {
+        [Employee.Employees.Selection_2_0] * {[Geography].[Geography].[Dummy]}
+      }
+     ,{
+        {[Employee].[Employees].[Dummy]} * [Geography.Geography.Selection_3_0]
+      }
+    }
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM 
+(
+  SELECT 
+    {
+        {
+          [Date].[Fiscal].[All Periods]
+         ,[Date].[Fiscal].[Fiscal Year].&[2007]
+         ,[Date].[Fiscal].[Fiscal Year].&[2008]
+         ,[Date].[Fiscal].[Fiscal Year].&[2009]
+        }
+      - 
+        {
+          Ascendants([Date].[Fiscal].[All Periods]) - [Date].[Fiscal].[All Periods]
+         ,
+            Ascendants([Date].[Fiscal].[Fiscal Year].&[2007])
+          - 
+            [Date].[Fiscal].[Fiscal Year].&[2007]
+         ,
+            Ascendants([Date].[Fiscal].[Fiscal Year].&[2008])
+          - 
+            [Date].[Fiscal].[Fiscal Year].&[2008]
+         ,
+            Ascendants([Date].[Fiscal].[Fiscal Year].&[2009])
+          - 
+            [Date].[Fiscal].[Fiscal Year].&[2009]
+        }
+    } ON 0
+  FROM 
+  (
+    SELECT 
+      {
+          {
+            [Product].[Product Categories].[All Products]
+           ,[Product].[Product Categories].[Subcategory].&[20]
+           ,[Product].[Product Categories].[Subcategory].&[34]
+           ,[Product].[Product Categories].[Subcategory].&[4]
+           ,[Product].[Product Categories].[Subcategory].&[15]
+          }
+        - 
+          {
+              Ascendants([Product].[Product Categories].[All Products])
+            - 
+              [Product].[Product Categories].[All Products]
+           ,
+              Ascendants([Product].[Product Categories].[Subcategory].&[20])
+            - 
+              [Product].[Product Categories].[Subcategory].&[20]
+           ,
+              Ascendants([Product].[Product Categories].[Subcategory].&[34])
+            - 
+              [Product].[Product Categories].[Subcategory].&[34]
+           ,
+              Ascendants([Product].[Product Categories].[Subcategory].&[4])
+            - 
+              [Product].[Product Categories].[Subcategory].&[4]
+           ,
+              Ascendants([Product].[Product Categories].[Subcategory].&[15])
+            - 
+              [Product].[Product Categories].[Subcategory].&[15]
+          }
+      } ON 0
+    FROM 
+    (
+      SELECT 
+        {[Employee].[Employees].[All Employees]} ON 0
+      FROM 
+      (
+        SELECT 
+          {
+              {
+                [Geography].[Geography].[Country].&[France]
+               ,[Geography].[Geography].[Country].&[Germany]
+               ,[Geography].[Geography].[Country].&[United Kingdom]
+               ,[Geography].[Geography].[Country].&[United States]
+              }
+            - 
+              {
+                  Ascendants([Geography].[Geography].[Country].&[France])
+                - 
+                  [Geography].[Geography].[Country].&[France]
+               ,
+                  Ascendants([Geography].[Geography].[Country].&[Germany])
+                - 
+                  [Geography].[Geography].[Country].&[Germany]
+               ,
+                  Ascendants([Geography].[Geography].[Country].&[United Kingdom])
+                - 
+                  [Geography].[Geography].[Country].&[United Kingdom]
+               ,
+                  Ascendants([Geography].[Geography].[Country].&[United States])
+                - 
+                  [Geography].[Geography].[Country].&[United States]
+              }
+          } ON 0
+        FROM [Adventure Works]
+      )
+    )
+  )
+);

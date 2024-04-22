@@ -1,0 +1,58 @@
+-- This script enhances the data analysis in the 'Adventure Works' cube by applying conditional formatting,
+-- using aliases for better readability, and demonstrating advanced data retrieval techniques such as drilldown and drillthrough.
+
+-- Base query to display Internet Sales Amount for select countries.
+SELECT
+    [Measures].[Internet Sales Amount] ON COLUMNS,
+    {[Customer].[Customer Geography].[Country].[France], [Customer].[Customer Geography].[Country].[United Kingdom], [Customer].[Customer Geography].[Country].[United States]} ON ROWS
+FROM
+    [Adventure Works];
+
+-- Conditional formatting for sales in local currencies of France, UK, and USA.
+WITH MEMBER [Measures].[Sales in Local Currency] AS
+    CASE [Customer].[Customer Geography].CurrentMember.Name
+        WHEN "France" THEN FORMAT([Measures].[Internet Sales Amount], "#,###.00 €")
+        WHEN "United Kingdom" THEN FORMAT([Measures].[Internet Sales Amount], "£#,###.00")
+        WHEN "United States" THEN FORMAT([Measures].[Internet Sales Amount], "$#,###.00")
+    END
+SELECT
+    [Measures].[Sales in Local Currency] ON COLUMNS,
+    {[Customer].[Customer Geography].[Country].[France], [Customer].[Customer Geography].[Country].[United Kingdom], [Customer].[Customer Geography].[Country].[United States]} ON ROWS
+FROM
+    [Adventure Works];
+
+-- Defining an alias for a measure to simplify queries.
+WITH MEMBER [Measures].[Customer Sales] AS
+    [Measures].[Internet Sales Amount]
+SELECT
+    [Measures].[Customer Sales] ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Using an alias for a dimension member to streamline references.
+WITH MEMBER [Product].[Product Categories].[Cycles] AS
+    [Product].[Product Categories].[Category].[Bikes]
+SELECT
+    [Product].[Product Categories].[Cycles] ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Applying drilldownmember to show the details from a higher to lower level of the hierarchy.
+WITH MEMBER [Measures].[Level in Hierarchy] AS
+    [Customer].[Customer Geography].CurrentMember.Level.Ordinal
+SELECT
+    {[Measures].[Customer Count], [Measures].[Level in Hierarchy]} ON COLUMNS,
+    NONEMPTY(DrillDownMember({[Customer].[Customer Geography].[Country].[United States]}, {[Customer].[Customer Geography].[Country].[United States], [Customer].[Customer Geography].[State-Province].[California]}, RECURSIVE), [Measures].[Customer Count]) ON ROWS
+FROM
+    [Adventure Works];
+
+-- Demonstrate drillthrough capability with detailed information return.
+DRILLTHROUGH MAXROWS 100
+SELECT
+    [Measures].[Internet Sales Amount] ON COLUMNS
+FROM
+    [Adventure Works]
+WHERE
+    ([Product].[Product Categories].[Category].[Bikes], [Customer].[Customer Geography].[Country].[United States], [Date].[Calendar].[Date].[July 1, 2001])
+RETURN
+    [$Product].[Product], KEY([$Product].[Product]), [$Date].[Date], [$Measures].[Internet Sales Amount], [$Customer].[Customer], [$Customer].[State-Province], [$Customer].[City];

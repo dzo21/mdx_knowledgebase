@@ -1,0 +1,193 @@
+WITH 
+  SET [Measures.Selection_0_0] AS 
+    {[Measures].[Internet Order Quantity]} 
+  SET [Date.Calendar.Selection_1_0] AS 
+    {[Date].[Calendar].DefaultMember} 
+  // sets for generate
+  SET [Date.Calendar.Selection_Set_For_Generate] AS 
+    {
+      [Date].[Calendar].DefaultMember
+     ,DrillDownLevel({[Date].[Calendar].DefaultMember})
+    } 
+  SET [Customer.Customer Geography.Selection_Set_For_Generate] AS 
+    {
+      [Customer].[Customer Geography].DefaultMember
+     ,DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
+    } 
+  // date calender sub ranges
+  SET [Date.Calendar.Selection_Range0_SubRange0] AS 
+    {[Date].[Calendar].DefaultMember} 
+  SET [Date.Calendar.Selection_Range0_SubRange1] AS 
+    {[Date].[Calendar].[Calendar Year].&[2005]} 
+  SET [Date.Calendar.Selection_Range0_SubRange2] AS 
+    {[Date].[Calendar].[Calendar Year].&[2006]} 
+  SET [Date.Calendar.Selection_Range0_SubRange3] AS 
+    {[Date].[Calendar].[Calendar Year].&[2007]} 
+  SET [Date.Calendar.Selection_Range0_SubRange4] AS 
+    {[Date].[Calendar].[Calendar Year].&[2008]} 
+  SET [Date.Calendar.Selection_Range0_SubRange5] AS 
+    {[Date].[Calendar].[Calendar Year].&[2009]} 
+  SET [Date.Calendar.Selection_Range0_SubRange6] AS 
+    {[Date].[Calendar].[Calendar Year].&[2010]} 
+  SET [Customer.Customer Geography.Selection_1_1] AS 
+    {[Customer].[Customer Geography].DefaultMember} 
+  // customer customer subranges
+  SET [Customer.Customer Geography.Range0_SubRange0] AS 
+    {[Customer].[Customer Geography].DefaultMember} 
+  SET [Customer.Customer Geography.Range0_SubRange1] AS 
+    {[Customer].[Customer Geography].[Country].&[Australia]} 
+  SET [Customer.Customer Geography.Range0_SubRange2] AS 
+    {[Customer].[Customer Geography].[Country].&[Canada]} 
+  SET [Customer.Customer Geography.Range0_SubRange3] AS 
+    {[Customer].[Customer Geography].[Country].&[France]} 
+  SET [Customer.Customer Geography.Range0_SubRange4] AS 
+    {[Customer].[Customer Geography].[Country].&[Germany]} 
+  SET [Customer.Customer Geography.Range0_SubRange5] AS 
+    {[Customer].[Customer Geography].[Country].&[United Kingdom]} 
+  SET [Customer.Customer Geography.Range0_SubRange6] AS 
+    {[Customer].[Customer Geography].[Country].&[United States]} 
+  SET [Product.Product Categories.Selection_1_2] AS 
+    {[Product].[Product Categories].DefaultMember} 
+  // product categories sub ranges
+  SET [Product.Product Categories.DefaultMember] AS 
+    {[Product].[Product Categories].DefaultMember} 
+  SET [Product.Product Categories.Range0_SubRange0] AS 
+    {[Product].[Product Categories].DefaultMember} 
+  SET [Product.Product Categories.Range0_SubRange1] AS 
+    {[Product].[Product Categories].[Category].&[4]} 
+  SET [Product.Product Categories.Range0_SubRange2] AS 
+    {[Product].[Product Categories].[Category].&[1]} 
+  SET [Product.Product Categories.Range0_SubRange3] AS 
+    {[Product].[Product Categories].[Category].&[3]} 
+  SET [Product.Product Categories.Range0_SubRange4] AS 
+    {[Product].[Product Categories].[Category].&[2]} 
+  SET [Date.Calendar.Selection_2_0] AS 
+    {[Date].[Calendar].[Calendar Year].&[2008]} 
+  SET [Customer.Customer Geography.Selection_2_1] AS 
+    {[Customer].[Customer Geography].[Country].&[Germany]} 
+  SET [DrillDownLevel.Product.Product Categories.Selection_2_2] AS 
+    {
+      DrillDownMember
+      (
+        {
+          DrillDownLevel({[Product].[Product Categories].[All Products]})
+        }
+       ,{[Product].[Product Categories].[Category].&[1]}
+       ,RECURSIVE
+      )
+    } 
+SELECT 
+  {[Measures.Selection_0_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {
+      {
+        Generate
+        (
+          [Date.Calendar.Selection_Set_For_Generate]
+         ,Generate
+          (
+            [Customer.Customer Geography.Selection_Set_For_Generate]
+           ,IIF
+            (
+                  [Date].[Calendar].CurrentMember
+                IS 
+                  [Date].[Calendar].[Calendar Year].&[2008]
+              AND 
+                  [Customer].[Customer Geography].CurrentMember
+                IS 
+                  [Customer].[Customer Geography].[Country].&[Germany]
+             ,
+                {[Date].[Calendar].CurrentMember}*
+                {[Customer].[Customer Geography].CurrentMember}*
+                [DrillDownLevel.Product.Product Categories.Selection_2_2]
+             ,
+                {[Date].[Calendar].Defaultmember}*
+                {[Customer].[Customer Geography].Defaultmember}*
+                [Product.Product Categories.DefaultMember]
+            )
+          )
+        )
+      }
+     ,{
+          [Date.Calendar.Selection_Range0_SubRange0]*
+          [Customer.Customer Geography.Selection_1_1]*
+          [Product.Product Categories.Selection_1_2]
+      }
+     ,{
+          [Date.Calendar.Selection_Range0_SubRange1]*
+          [Customer.Customer Geography.Selection_1_1]*
+          [Product.Product Categories.Selection_1_2]
+      }
+     ,{
+          [Date.Calendar.Selection_Range0_SubRange2]*
+          [Customer.Customer Geography.Selection_1_1]*
+          [Product.Product Categories.Selection_1_2]
+      }
+     ,{
+          [Date.Calendar.Selection_Range0_SubRange3]*
+          [Customer.Customer Geography.Selection_1_1]*
+          [Product.Product Categories.Selection_1_2]
+      }
+     ,{
+        // Date Calender == 2008
+        {
+            [Date.Calendar.Selection_Range0_SubRange4]*
+            [Customer.Customer Geography.Range0_SubRange0]*
+            [Product.Product Categories.Selection_1_2]
+        }
+       ,{
+            [Date.Calendar.Selection_Range0_SubRange4]*
+            [Customer.Customer Geography.Range0_SubRange1]*
+            [Product.Product Categories.Selection_1_2]
+        }
+       ,{
+            [Date.Calendar.Selection_Range0_SubRange4]*
+            [Customer.Customer Geography.Range0_SubRange2]*
+            [Product.Product Categories.Selection_1_2]
+        }
+       ,{
+            [Date.Calendar.Selection_Range0_SubRange4]*
+            [Customer.Customer Geography.Range0_SubRange3]*
+            [Product.Product Categories.Selection_1_2]
+        }
+       ,{
+          {
+            Generate
+            (
+              [Date.Calendar.Selection_2_0]
+             ,Generate
+              (
+                [Customer.Customer Geography.Selection_2_1]
+               ,
+                  {[Date].[Calendar].CurrentMember}*
+                  {[Customer].[Customer Geography].CurrentMember}*
+                  [DrillDownLevel.Product.Product Categories.Selection_2_2]
+              )
+            )
+          }
+        }
+       ,{
+            [Date.Calendar.Selection_Range0_SubRange4]*
+            [Customer.Customer Geography.Range0_SubRange5]*
+            [Product.Product Categories.Selection_1_2]
+        }
+       ,{
+            [Date.Calendar.Selection_Range0_SubRange4]*
+            [Customer.Customer Geography.Range0_SubRange6]*
+            [Product.Product Categories.Selection_1_2]
+        }
+      }
+     ,{
+          [Date.Calendar.Selection_Range0_SubRange5]*
+          [Customer.Customer Geography.Selection_1_1]*
+          [Product.Product Categories.Selection_1_2]
+      }
+     ,{
+          [Date.Calendar.Selection_Range0_SubRange6]*
+          [Customer.Customer Geography.Selection_1_1]*
+          [Product.Product Categories.Selection_1_2]
+      }
+    }
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM [Adventure Works];

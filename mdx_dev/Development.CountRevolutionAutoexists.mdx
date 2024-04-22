@@ -1,0 +1,43 @@
+-- Refactored SQL code with added documentation and comments for clarity.
+WITH 
+  -- Set containing the Reseller Sales Amount measure.
+  SET [Measures.Selection_1_0] AS 
+    {{[Measures].[Reseller Sales Amount]}} 
+
+  -- Set defining the default member for Product Category for drill-down.
+  SET [DrillDownLevel.Product.Category.Selection_0_0] AS 
+    {{DrillDownLevel({[Product].[Category].DefaultMember})}} 
+
+  -- Set defining the default member for Product Subcategory for drill-down.
+  SET [DrillDownLevel.Product.Subcategory.Selection_0_1] AS 
+    {{DrillDownLevel({[Product].[Subcategory].DefaultMember})}} 
+  
+  -- Calculated member to rank Product Categories.
+  MEMBER [Measures].[Rank Category] AS 
+    Rank(
+      [Product].[Category].CurrentMember,
+      [DrillDownLevel.Product.Category.Selection_0_0]
+    ) 
+  
+  -- Calculated member to rank Product Subcategories.
+  MEMBER [Measures].[Rank Subcategory] AS 
+    Rank(
+      [Product].[Subcategory].CurrentMember,
+      [DrillDownLevel.Product.Subcategory.Selection_0_1]
+    ) 
+
+-- Selecting the newly defined rank measures.
+SELECT 
+  {
+    [Measures].[Rank Category],
+    [Measures].[Rank Subcategory]
+  } ON 0,
+
+  -- Cross join between category and subcategory sets for detailed analysis.
+  {
+      [DrillDownLevel.Product.Category.Selection_0_0]
+    * 
+      [DrillDownLevel.Product.Subcategory.Selection_0_1]
+  } ON 1
+FROM 
+  [Adventure Works]; -- Data sourced from the Adventure Works cube.

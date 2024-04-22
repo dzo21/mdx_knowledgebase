@@ -1,0 +1,96 @@
+-- ,{[Measures.Selection_3_0]} ON 1
+WITH 
+  // dummies
+  MEMBER [Product].[Product Categories].[Dummy] AS 
+    [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Calendar].[Dummy] AS 
+    [Date].[Calendar].DefaultMember 
+  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS 
+    [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
+    [Date].[Calendar].DefaultMember 
+  MEMBER [Measures].[Dummy] AS 
+    [Measures].DefaultMember 
+  MEMBER [Measures].[EmptyRangeDummy] AS 
+    [Measures].DefaultMember 
+  // selections
+  SET [Product.Product Categories.Selection_0_0] AS 
+    {
+      {[Product].[Product Categories].[Subcategory].&[31]}
+     ,{[Product].[Product Categories].[Subcategory].&[23]}
+    } 
+  SET [Product.Product Categories.Selection_1_0] AS 
+    {{[Product].[Product Categories].[Subcategory].MEMBERS}} 
+  SET [Date.Calendar.Selection_1_1] AS 
+    {{[Date].[Calendar].[Calendar Year].&[2008]}} 
+  SET [Date.Calendar.Selection_2_0] AS 
+    {{[Date].[Calendar].[Calendar Year].MEMBERS}} 
+  SET [Measures.Selection_3_0] AS 
+    {{[Measures].[Reseller Sales Amount]}} 
+  // query component member counts
+  MEMBER [Measures].[Product.Product Categories.Selection_0_0.Count] AS 
+    {[Product.Product Categories.Selection_0_0]}.Count 
+  MEMBER [Measures].[Product.Product Categories.Selection_1_0.Count] AS 
+    {{[Product.Product Categories.Selection_1_0]}}.Count 
+  MEMBER [Measures].[Date.Calendar.Selection_1_1.Count] AS 
+    {{[Date.Calendar.Selection_1_1]}}.Count 
+  MEMBER [Measures].[Date.Calendar.Selection_2_0.Count] AS 
+    {{[Date.Calendar.Selection_2_0]}}.Count 
+  MEMBER [Measures].[Measures.Selection_3_0.Count] AS 
+    {{[Measures.Selection_3_0]}}.Count 
+  // query component tupel count
+  MEMBER [Measures].[Product.Product Categories.Selection_0_0.Tuple.Count] AS 0 
+  MEMBER [Measures].[Product.Product Categories.Selection_1_0.Tuple.Count] AS 1 
+  MEMBER [Measures].[Date.Calendar.Selection_1_1.Tuple.Count] AS 1 
+  MEMBER [Measures].[Date.Calendar.Selection_2_0.Tuple.Count] AS 2 
+  MEMBER [Measures].[Measures.Selection_3_0.Tuple.Count] AS 3 
+  // query component hierarchy count
+  MEMBER [Measures].[Product.Product Categories.Selection_0_0.Hierarchy.Count] AS 0 
+  MEMBER [Measures].[Product.Product Categories.Selection_1_0.Hierarchy.Count] AS 0 
+  MEMBER [Measures].[Date.Calendar.Selection_1_1.Hierarchy.Count] AS 1 
+  MEMBER [Measures].[Date.Calendar.Selection_2_0.Hierarchy.Count] AS 0 
+  MEMBER [Measures].[Measures.Selection_3_0.Hierarchy.Count] AS 0 
+SELECT 
+  {
+      {
+        {
+          [Measures.Selection_3_0]
+         ,[Measures].[Product.Product Categories.Selection_0_0.Count]
+         ,[Measures].[Product.Product Categories.Selection_0_0.Tuple.Count]
+         ,[Measures].[Product.Product Categories.Selection_0_0.Hierarchy.Count]
+        }
+      }
+    * 
+      {[Date].[Calendar].[Dummy]}
+   ,
+      {
+        {
+          [Measures.Selection_3_0]
+         ,[Measures].[Product.Product Categories.Selection_1_0.Count]
+         ,[Measures].[Product.Product Categories.Selection_1_0.Tuple.Count]
+         ,[Measures].[Product.Product Categories.Selection_1_0.Hierarchy.Count]
+        }
+      }
+    * 
+      {[Date.Calendar.Selection_1_1]}
+   ,
+    {{[Measures].[Dummy]}} * {[Date.Calendar.Selection_2_0]}
+  } ON 0
+FROM 
+(
+  SELECT 
+    {
+      [Reseller].[Reseller Bank].[Bank Name].&[International Security]
+     ,[Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve]
+     ,[Reseller].[Reseller Bank].[Bank Name].&[United Security]
+    } ON 0
+  FROM 
+  (
+    SELECT 
+      {
+        [Customer].[Customer Geography].[Country].&[Canada]
+       ,[Customer].[Customer Geography].[Country].&[Germany]
+      } ON 0
+    FROM [Adventure Works]
+  )
+);

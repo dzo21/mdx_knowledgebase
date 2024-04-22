@@ -1,0 +1,82 @@
+WITH 
+  -- Dummy members for default calculations
+  MEMBER [Measures].[Dummy] AS 
+    [Measures].DefaultMember 
+  MEMBER [Measures].[EmptyRangeDummy] AS 
+    [Measures].DefaultMember 
+  MEMBER [Product].[Category].[Dummy] AS 
+    [Product].[Category].DefaultMember 
+  MEMBER [Product].[Subcategory].[Dummy] AS 
+    [Product].[Subcategory].DefaultMember 
+  MEMBER [Product].[Category].[EmptyRangeDummy] AS 
+    [Product].[Category].DefaultMember 
+  MEMBER [Product].[Subcategory].[EmptyRangeDummy] AS 
+    [Product].[Subcategory].DefaultMember 
+
+  -- Set for measures selection
+  SET [Measures.Selection_0_0] AS 
+    {{[Measures].[Reseller Sales Amount]}} 
+
+  -- Drill down sets for category and subcategory
+  SET [DrillDownLevel.Product.Category.Selection_1_0] AS 
+    {{DrillDownLevel({[Product].[Category].DefaultMember})}} 
+  SET [DrillDownLevel.Product.Subcategory.Selection_1_1] AS 
+    {{DrillDownLevel({[Product].[Subcategory].DefaultMember})}} 
+
+  -- Ordered set of categories by internet sales amount
+  SET [Category_Set] AS 
+    Order
+    (
+      NonEmpty
+      (
+        [DrillDownLevel.Product.Category.Selection_1_0],
+        [Measures].[Internet Sales Amount]
+      ),
+      [Measures].[Internet Sales Amount],
+      DESC
+    ) 
+
+  -- Rank member for categories
+  MEMBER [Measures].[CategoryRank] AS 
+    Rank
+    (
+      [Product].[Category].CurrentMember,
+      [Category_Set]
+    ) 
+
+  -- Ordered set of subcategories by internet sales amount
+  SET [Subcategory_Set] AS 
+    Order
+    (
+      NonEmpty
+      (
+        [DrillDownLevel.Product.Subcategory.Selection_1_1],
+        [Measures].[Internet Sales Amount]
+      ),
+      [Measures].[Internet Sales Amount],
+      DESC
+    ) 
+
+  -- Rank member for subcategories
+  MEMBER [Measures].[SubcategoryRank] AS 
+    Rank
+    (
+      [Product].[Subcategory].CurrentMember,
+      [Subcategory_Set]
+    ) 
+
+SELECT 
+  -- Selecting rank measures on columns
+  {
+    [Measures].[CategoryRank],
+    [Measures].[SubcategoryRank]
+  } ON 0,
+
+  -- Generating cross-join of categories and subcategories on rows
+  Generate
+  (
+    [Product].[Category].MEMBERS,
+    [Product].[Category].CurrentMember * [Product].[Subcategory].MEMBERS
+  ) ON 1
+FROM 
+  [Adventure Works];

@@ -1,0 +1,67 @@
+WITH 
+  SET [Measures.Selection_0_0] AS 
+    {[Measures].[Internet Order Quantity]} 
+  SET [Date.Calendar.Selection_Set_For_Generate] AS 
+    {DrillDownLevel({[Date].[Calendar].DefaultMember})} 
+  SET [Customer.Customer Geography.Selection_Set_For_Generate] AS 
+    {
+      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
+    } 
+SELECT 
+  {[Measures.Selection_0_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {
+      {
+        Generate
+        (
+          [Date.Calendar.Selection_Set_For_Generate]
+         ,Generate
+          (
+            [Customer.Customer Geography.Selection_Set_For_Generate]
+           ,IIF
+            (
+                [Date].[Calendar].CurrentMember
+              IS 
+                [Date].[Calendar].[Calendar Year].&[2008]
+             ,Generate
+              (
+                [Date].[Calendar].CurrentMember
+               ,Generate
+                (
+                  [Customer.Customer Geography.Selection_Set_For_Generate]
+                 ,
+                    {[Date].[Calendar].CurrentMember}
+                  * 
+                    {[Customer].[Customer Geography].CurrentMember}
+                )
+              )
+             ,IIF
+              (
+                  [Date].[Calendar].CurrentMember
+                IS 
+                  [Date].[Calendar].[Calendar Year].&[2007]
+               ,Generate
+                (
+                  [Date].[Calendar].CurrentMember
+                 ,Generate
+                  (
+                    [Customer.Customer Geography.Selection_Set_For_Generate]
+                   ,
+                      {[Date].[Calendar].CurrentMember}
+                    * 
+                      {[Customer].[Customer Geography].CurrentMember}
+                  )
+                )
+               ,
+                  {[Date].[Calendar].CurrentMember}
+                * 
+                  {[Customer].[Customer Geography].DefaultMember}
+              )
+            )
+          )
+        )
+      }
+    }
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM [Adventure Works];

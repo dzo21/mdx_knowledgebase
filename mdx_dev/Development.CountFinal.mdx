@@ -1,0 +1,123 @@
+WITH 
+  // Define dummy members to handle default selections and prevent errors in the cube
+  MEMBER [Product].[Product Categories].[Dummy] AS 
+    [Product].[Product Categories].DefaultMember,
+  MEMBER [Product].[Category].[Dummy] AS 
+    [Product].[Category].DefaultMember,
+  MEMBER [Date].[Calendar].[Dummy] AS 
+    [Date].[Calendar].DefaultMember,
+  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS 
+    [Product].[Product Categories].DefaultMember,
+  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
+    [Date].[Calendar].DefaultMember,
+  MEMBER [Measures].[Dummy] AS 
+    [Measures].DefaultMember,
+  MEMBER [Measures].[EmptyRangeDummy] AS 
+    [Measures].DefaultMember,
+
+  // Define sets for product selections in the bike category
+  SET [Product.Product Categories.Selection_0_0] AS 
+    {
+      [Product].[Product Categories].[Product].&[573],
+      [Product].[Product Categories].[Product].&[574],
+      [Product].[Product Categories].[Product].&[564],
+      [Product].[Product Categories].[Product].&[329],
+      [Product].[Product Categories].[Product].&[353]
+    },
+  SET [Product.Category.Selection_0_1] AS 
+    {[Product].[Category].&[1]},
+
+  SET [Product.Product Categories.Selection_1_0] AS 
+    {
+      [Product].[Product Categories].[Product].&[568],
+      [Product].[Product Categories].[Product].&[570],
+      [Product].[Product Categories].[Product].&[571],
+      [Product].[Product Categories].[Product].&[566],
+      [Product].[Product Categories].[Product].&[461],
+      [Product].[Product Categories].[Product].&[460],
+      [Product].[Product Categories].[Product].&[459]
+    },
+
+  // Define sets for calendar year selections
+  SET [Date.Calendar.Selection_1_1] AS 
+    {[Date].[Calendar].[Calendar Year].&[2008]},
+  SET [Date.Calendar.Selection_2_0] AS 
+    {[Date].[Calendar].[Calendar Year].MEMBERS},
+
+  // Define measure contexts for selection
+  SET [Measures.Selection_3_0_0] AS 
+    {
+      [Measures].[Reseller Sales Amount],
+      [Measures].[Internet Tax Amount],
+      [Measures].[Internet Order Quantity]
+    },
+
+  // Extract relevant product categories from the defined sets and measures
+  SET [Product.Product Categories.NonEmptySelection_0_0] AS 
+    Extract(
+      [Product.Product Categories.Selection_0_0] * [Measures.Selection_3_0_0],
+      [Product].[Product Categories]
+    ),
+
+  // Extract relevant product categories for another selection
+  SET [Product.Product Categories.NonEmptySelection_1_0] AS 
+    Extract(
+      [Product.Product Categories.Selection_1_0] * [Date.Calendar.Selection_1_1] * [Measures.Selection_3_0_0],
+      [Product].[Product Categories]
+    ),
+
+  // Extract non-empty calendar years for selections
+  SET [Date.Calendar.NonEmptySelection_1_1] AS 
+    Extract(
+      [Product.Product Categories.Selection_0_0] * [Date.Calendar.Selection_1_1] * [Measures.Selection_3_0_0],
+      [Date].[Calendar]
+    ),
+  SET [Date.Calendar.NonEmptySelection_2_0] AS 
+    Extract(
+      [Date.Calendar.Selection_2_0] * [Measures.Selection_3_0_0],
+      [Date].[Calendar]
+    ),
+
+  // Define measures to count the selections
+  MEMBER [Measures].[00] AS 
+    {[Product.Product Categories.NonEmptySelection_0_0]}.Count,
+  MEMBER [Measures].[10] AS 
+    {[Product.Product Categories.NonEmptySelection_1_0]}.Count,
+  MEMBER [Measures].[11] AS 
+    {[Date.Calendar.NonEmptySelection_1_1]}.Count,
+  MEMBER [Measures].[20] AS 
+    {[Date.Calendar.NonEmptySelection_2_0]}.Count,
+  MEMBER [Measures].[30] AS 
+    {[Measures.Selection_3_0_0]}.Count
+
+// Select measures and execute the query within a series of subselects to filter data by reseller and customer geography
+SELECT 
+  {
+    [Measures].[00],
+    [Measures].[10],
+    [Measures].[11],
+    [Measures].[20]
+  } ON 0
+FROM 
+(
+  SELECT 
+    {
+      [Reseller].[Reseller Bank].[Bank Name].&[International Security],
+      [Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve],
+      [Reseller].[Reseller Bank].[Bank Name].&[United Security]
+    } ON 0
+  FROM 
+  (
+    SELECT 
+      {
+        [Customer].[Customer Geography].[Country].&[Canada],
+        [Customer].[Customer Geography].[Country].&[Germany]
+      } ON 0
+    FROM 
+    (
+      SELECT 
+        [Product].[Category].&[1] ON 0
+      FROM [Adventure Works]
+    )
+  )
+);

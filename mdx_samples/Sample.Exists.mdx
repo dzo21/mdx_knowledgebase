@@ -1,0 +1,42 @@
+SELECT
+   {[Measures].[Reseller Sales Amount]} ON COLUMNS,
+   NON EMPTY {[Date].[Month].[May 2002]} * {[Employee].[Employee].Members} ON ROWS
+FROM [Step-by-Step]
+;
+/*                                Reseller Sales Amount
+May 2002  All Employees                   $2,269,116.71
+May 2002  David R. Campbell                 $115,901.80
+May 2002  Garrett R. Vargas                 $172,622.35
+May 2002  Jillian Carson                    $464,167.31
+May 2002  José Edvaldo. Saraiva             $212,020.26
+May 2002  Linda C. Mitchell                 $401,687.56
+May 2002  Michael G. Blythe                 $172,429.58
+May 2002  Pamela O. Ansman-Wolfe            $252,116.05
+May 2002  Shu K. Ito                        $103,508.43
+May 2002  Tsvi Michael. Reiter              $374,663.36
+*/
+
+SELECT
+   {[Measures].[Reseller Sales Amount]} ON COLUMNS,
+   {[Date].[Month].[May 2002]} 
+      * EXISTS(
+           {[Employee].[Employee].Members},
+           {[Date].[Calendar].[Q2 CY 2002]},
+           "Sales Targets"
+           )
+   ON ROWS
+FROM [Step-by-Step]
+;
+/*                                Reseller Sales Amount
+May 2002  All Employees                   $2,269,116.71
+May 2002  David R. Campbell                 $115,901.80
+May 2002  Garrett R. Vargas                 $172,622.35
+May 2002  Jillian Carson                    $464,167.31
+May 2002  José Edvaldo. Saraiva             $212,020.26
+May 2002  Linda C. Mitchell                 $401,687.56
+May 2002  Michael G. Blythe                 $172,429.58
+May 2002  Pamela O. Ansman-Wolfe            $252,116.05
+May 2002  Shu K. Ito                        $103,508.43
+May 2002  Stephen Y. Jiang                       (null)
+May 2002  Tsvi Michael. Reiter              $374,663.36
+*/

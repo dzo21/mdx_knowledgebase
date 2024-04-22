@@ -1,0 +1,46 @@
+-- Refactored MDX query for analyzing product categories in the Adventure Works cube
+-- This query includes dummy members for handling null scenarios and specific selections for detailed analysis.
+
+WITH 
+  -- Dummy members to handle null or default scenarios in product categories, calendar dates, and measures.
+  MEMBER [Product].[Product Categories].[Dummy] AS [Product].[Product Categories].DefaultMember
+  MEMBER [Product].[Category].[Dummy] AS [Product].[Category].DefaultMember
+  MEMBER [Date].[Calendar].[Dummy] AS [Date].[Calendar].DefaultMember
+  MEMBER [Measures].[Dummy] AS [Measures].DefaultMember
+
+  -- Set of selected product IDs within the bike category for targeted analysis.
+  SET [Selected Products] AS {
+    [Product].[Product Categories].[Product].&[573],
+    [Product].[Product Categories].[Product].&[574],
+    [Product].[Product Categories].[Product].&[564],
+    [Product].[Product Categories].[Product].&[329],
+    [Product].[Product Categories].[Product].&[353]
+  }
+
+  -- Set of calendar years and measures selected for analysis.
+  SET [Selected Year] AS {[Date].[Calendar].[Calendar Year].&[2008]}
+  SET [Selected Measures] AS {
+    [Measures].[Reseller Sales Amount],
+    [Measures].[Internet Tax Amount],
+    [Measures].[Internet Order Quantity]
+  }
+
+  -- Creating non-empty combinations of selected products, years, and measures to ensure data availability.
+  SET [Valid Combinations] AS NonEmpty(
+    [Selected Products] * [Selected Year] * [Selected Measures]
+  )
+
+  -- Members to calculate counts of products, years, and measures in non-empty sets for analysis validation.
+  MEMBER [Measures].[Product Count] AS [Valid Combinations].Count
+  MEMBER [Measures].[Year Count] AS [Selected Year].Count
+  MEMBER [Measures].[Measure Count] AS [Selected Measures].Count
+
+-- Execution of the query to analyze data availability and product distribution.
+SELECT 
+  {
+    [Measures].[Product Count],
+    [Measures].[Year Count],
+    [Measures].[Measure Count]
+  } ON COLUMNS,
+  NON EMPTY [Valid Combinations] ON ROWS
+FROM [Adventure Works];

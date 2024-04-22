@@ -1,0 +1,94 @@
+-- selecting existing KPIs
+select
+crossjoin([Date].[Fiscal].[Fiscal Year].[FY 2003],{KPIValue("Product Gross Profit Margin"),KPIGoal("Product Gross Profit Margin"),KPIStatus("Product Gross Profit Margin")})
+on columns,
+[Product].[Product Categories].[Category]
+on rows
+from [Adventure Works]
+
+-- formatting existing KPIs
+with member [Measures].[Actual] as
+KPIValue("Product Gross Profit Margin"),format_string = "Percent"
+member [Measures].[Target] as KPIGoal("Product Gross Profit Margin"),format_string="Percent"
+member [Measures].[Status] as KPIStatus("Product Gross Profit Margin")
+member [Measures].[Trend] as KPITrend("Product Gross Profit Margin")
+select
+crossjoin({[Date].[Fiscal].[Fiscal Year].[FY 2003],[Date].[Fiscal].[Fiscal Year].[FY 2004]},{[Measures].[Actual],[Measures].[Target],[Measures].[Status],[Measures].[Trend]})
+on columns,
+[Product].[Product Categories].[Category]
+on rows
+from [Adventure Works]
+
+-- changing existing KPIGoal (target) and KPIStatus
+with member [Measures].[Actual] as
+KPIValue("Product Gross Profit Margin"),format_string = "Percent"
+member [Measures].[Target] as iif([Product].[Product Categories].currentmember is [Product].[Product Categories].[Accessories],.60,KPIGoal("Product Gross Profit Margin")),format_string="Percent"
+member [Measures].[Status] as iif([Product].[Product Categories].currentmember is [Product].[Product Categories].[Accessories],
+Case
+When  [Measures].[Actual]/ [Measures].[Target]
+>= .95
+Then 1
+When  [Measures].[Actual]/ [Measures].[Target]
+<  .95
+And 
+[Measures].[Actual]/ [Measures].[Target]
+>= .70
+Then 0
+Else -1
+End
+,KPIStatus("Product Gross Profit Margin"))
+select
+crossjoin({[Date].[Fiscal].[Fiscal Year].[FY 2003],[Date].[Fiscal].[Fiscal Year].[FY 2004]},{[Measures].[Actual],[Measures].[Target],[Measures].[Status]})
+on columns,
+[Product].[Product Categories].[Category]
+on rows
+from [Adventure Works]
+
+-- creating a new KPI
+create member [Adventure Works].[Measures].[Profit Margin Value] as
+[Measures].[Gross Profit Margin]
+go
+create KPI [Adventure Works].[Profit Margin] as
+[Measures].[Profit Margin Value],
+goal=
+case
+when [Product].[Category].CurrentMember Is [Product].[Category].[Accessories]
+then vba!format(.40,"Percent")
+when [Product].[Category].CurrentMember Is [Product].[Category].[Bikes]
+then vba!format(.12,"Percent")
+when [Product].[Category].CurrentMember Is [Product].[Category].[Clothing]
+then vba!format(.20,"Percent")
+when [Product].[Category].CurrentMember Is [Product].[Category].[Components]
+then vba!format(.10,"Percent")
+else vba!format(.12,"Percent")
+end,
+status=
+case
+when 
+vba!cDBL(left(KPIValue("Profit Margin"),len(KPIValue("Profit Margin"))-1)) * 100/vba!cDBL(left(KPIGoal("Profit Margin"),len(KPIGoal("Profit Margin"))-1)) >= .90
+then 1
+when
+vba!cDBL(left(KPIValue("Profit Margin"),len(KPIValue("Profit Margin"))-1)) * 100/ 
+vba!cDBL(left(KPIGoal("Profit Margin"),len(KPIGoal("Profit Margin"))-1)) <  .90
+and 
+vba!cDBL(left(KPIValue("Profit Margin"),len(KPIValue("Profit Margin"))-1)) * 100/ 
+vba!cDBL(left(KPIGoal("Profit Margin"),len(KPIGoal("Profit Margin"))-1)) >= .80
+then 0
+else -1
+end
+-- selecting the new KPI
+select
+crossjoin({[Date].[Fiscal].[Fiscal Year].[FY 2003],[Date].[Fiscal].[Fiscal Year].[FY 2004]},{KPIValue("Profit Margin"),KPIGoal("Profit Margin"),KPIStatus("Profit Margin")})
+on columns,
+[Product].[Product Categories].[Category]
+on rows
+from [Adventure Works]
+
+-- cleaning up
+drop KPI [Adventure Works].[Profit Margin]
+go
+drop member [Adventure Works].[Measures].[Profit Margin Value]
+
+
+
+

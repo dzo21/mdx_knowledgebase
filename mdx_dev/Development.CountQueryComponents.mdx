@@ -1,0 +1,116 @@
+# The code provided by the user seems to be a part of an MDX (MultiDimensional eXpressions) query script used with OLAP (Online Analytical Processing) cubes in SQL Analysis Services. The user has requested a refactoring of the code along with adding documentation and comments for better understanding and readability. Here's the refactored version of the code with necessary documentation and comments.
+
+WITH 
+  // Dummy members are used as placeholders in the query to represent default selections or for manipulation purposes.
+  MEMBER [Product].[Product Categories].[Dummy] AS 
+    [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Calendar].[Dummy] AS 
+    [Date].[Calendar].DefaultMember 
+  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS 
+    [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
+    [Date].[Calendar].DefaultMember 
+  MEMBER [Measures].[Dummy] AS 
+    [Measures].DefaultMember 
+  MEMBER [Measures].[EmptyRangeDummy] AS 
+    [Measures].DefaultMember 
+  // Defines selections for product subcategories as individual sets.
+  SET [Product.Product Categories.Selection_0_0_0] AS 
+    {{[Product].[Product Categories].[Subcategory].&[31]}} 
+  SET [Product.Product Categories.Selection_0_0_1] AS 
+    {{[Product].[Product Categories].[Subcategory].&[23]}} 
+  // Defines a selection for all subcategory members.
+  SET [Product.Product Categories.Selection_1_0_0] AS 
+    {{[Product].[Product Categories].[Subcategory].MEMBERS}} 
+  // Defines a selection for a specific calendar year.
+  SET [Date.Calendar.Selection_1_1_0] AS 
+    {{[Date].[Calendar].[Calendar Year].&[2008]}} 
+  // Defines a selection for all calendar year members.
+  SET [Date.Calendar.Selection_2_0_0] AS 
+    {{[Date].[Calendar].[Calendar Year].MEMBERS}} 
+  // Defines a selection for a specific measure.
+  SET [Measures.Selection_3_0_0] AS 
+    {{[Measures].[Reseller Sales Amount]}} 
+  // Counts of selections are stored in these members for further usage in the query.
+  MEMBER [Product].[Product Categories].[0_0_0.MemberCount] AS 
+    {[Product.Product Categories.Selection_0_0_0]}.Count 
+  MEMBER [Product].[Product Categories].[0_0_1.MemberCount] AS 
+    {[Product.Product Categories.Selection_0_0_1]}.Count 
+  MEMBER [Product].[Product Categories].[1_0_0.MemberCount] AS 
+    {{[Product.Product Categories.Selection_1_0_0]}}.Count 
+  MEMBER [Date].[Calendar].[1_1_0.MemberCount] AS 
+    {{[Date.Calendar.Selection_1_1_0]}}.Count 
+  MEMBER [Date].[Calendar].[2_0_0.MemberCount] AS 
+    {{[Date.Calendar.Selection_2_0_0]}}.Count 
+  MEMBER [Measures].[3_0_0.MemberCount] AS 
+    {{[Measures.Selection_3_0_0]}}.Count 
+  // Tuple indices are used to track positions of query components for debugging or logical structuring.
+  MEMBER [Product].[Product Categories].[0_0.TupleIndex] AS 0 
+  MEMBER [Product].[Product Categories].[1_0.TupleIndex] AS 1 
+  MEMBER [Date].[Calendar].[1_1.TupleIndex] AS 1 
+  MEMBER [Date].[Calendar].[2_0.TupleIndex] AS 2 
+  MEMBER [Measures].[3_0.TupleIndex] AS 3 
+  // Hierarchy indices help in identifying which hierarchy each component belongs to.
+  MEMBER [Product].[Product Categories].[0_0.HierarchyIndex] AS 0 
+  MEMBER [Product].[Product Categories].[1_0.HierarchyIndex] AS 0 
+  MEMBER [Date].[Calendar].[1_1.HierarchyIndex] AS 1 
+  MEMBER [Date].[Calendar].[2_0.HierarchyIndex] AS 0 
+  MEMBER [Measures].[3_0.HierarchyIndex] AS 0 
+SELECT 
+  // Selecting the specific measures set on the columns.
+  {[Measures.Selection_3_0_0]} ON 0,
+  // Building the rows with product categories and date calendar members with their respective counts and indices.
+  {
+      {
+        [Product].[Product Categories].[0_0.TupleIndex]
+       ,[Product].[Product Categories].[0_0.HierarchyIndex]
+       ,[Product].[Product Categories].[0_0_0.MemberCount]
+       ,[Product].[Product Categories].[0_0_1.MemberCount]
+      }
+    * 
+      {[Date].[Calendar].[Dummy]}
+   ,
+      {
+        [Product].[Product Categories].[1_0.TupleIndex]
+       ,[Product].[Product Categories].[1_0.HierarchyIndex]
+       ,[Product].[Product Categories].[1_0_0.MemberCount]
+      }
+    * 
+      {{[Date].[Calendar].[Dummy]}}
+   ,
+      {[Product].[Product Categories].[Dummy]}
+    * 
+      {
+        [Date].[Calendar].[1_1.TupleIndex]
+       ,[Date].[Calendar].[1_1.HierarchyIndex]
+       ,[Date].[Calendar].[1_1_0.MemberCount]
+      }
+   ,
+      {[Product].[Product Categories].[Dummy]}
+    * 
+      {
+        [Date].[Calendar].[2_0.TupleIndex]
+       ,[Date].[Calendar].[2_0.HierarchyIndex]
+       ,[Date].[Calendar].[2_0_0.MemberCount]
+      }
+  } ON 1
+FROM 
+(
+  // Sub-select to filter on specific reseller banks.
+  SELECT 
+    {
+      [Reseller].[Reseller Bank].[Bank Name].&[International Security]
+     ,[Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve]
+     ,[Reseller].[Reseller Bank].[Bank Name].&[United Security]
+    } ON 0
+  FROM 
+  (
+    // Sub-sub-select to filter on specific countries.
+    SELECT 
+      {
+        [Customer].[Customer Geography].[Country].&[Canada]
+       ,[Customer].[Customer Geography].[Country].&[Germany]
+      } ON 0
+    FROM [Adventure Works]
+  )
+);

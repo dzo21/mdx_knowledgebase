@@ -1,0 +1,63 @@
+WITH 
+  SET [Customer.Customer Geography.SelectedDrilldown_1_1_1] AS 
+    {
+      [Customer].[Customer Geography].[Country].&[Australia]
+     ,[Customer].[Customer Geography].[Country].&[Canada]
+    } 
+  SET [Customer.Customer Geography.SelectedDrilldown_1_1_2] AS 
+    {
+      [Customer].[Customer Geography].[Country].&[France]
+     ,[Customer].[Customer Geography].[Country].&[Germany]
+    } 
+  SET [Measures.Selection_0_0] AS 
+    {[Measures].[Internet Order Quantity]} 
+  SET [DrillDownLevel.Date.Calendar.Selection_1_0] AS 
+    {DrillDownLevel({[Date].[Calendar].DefaultMember})} 
+  SET [DrillDownLevel.Customer.Customer Geography.Selection_1_1] AS 
+    {
+      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
+    } 
+SELECT 
+  {[Measures.Selection_0_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {
+      Generate
+      (
+        [DrillDownLevel.Date.Calendar.Selection_1_0]
+       ,IIF
+        (
+            [Date].[Calendar].CurrentMember
+          IS 
+            [Date].[Calendar].[Calendar Year].&[2006]
+         ,Generate
+          (
+            [Customer.Customer Geography.SelectedDrilldown_1_1_1]
+           ,
+              {[Date].[Calendar].CurrentMember}
+            * 
+              {[Customer].[Customer Geography].CurrentMember}
+          )
+         ,IIF
+          (
+              [Date].[Calendar].CurrentMember
+            IS 
+              [Date].[Calendar].[Calendar Year].&[2007]
+           ,Generate
+            (
+              [Customer.Customer Geography.SelectedDrilldown_1_1_2]
+             ,
+                {[Date].[Calendar].CurrentMember}
+              * 
+                {[Customer].[Customer Geography].CurrentMember}
+            )
+           ,
+              {[Date].[Calendar].CurrentMember}
+            * 
+              {[Customer].[Customer Geography].DefaultMember}
+          )
+        )
+      )
+    }
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM [Adventure Works];

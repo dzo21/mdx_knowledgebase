@@ -1,0 +1,79 @@
+WITH 
+  MEMBER [Date].[Calendar].[Dummy] AS 
+    [Date].[Calendar].DefaultMember 
+   ,SOLVE_ORDER = 500 
+  MEMBER [Customer].[Customer Geography].[Dummy] AS 
+    [Customer].[Customer Geography].DefaultMember 
+   ,SOLVE_ORDER = 500 
+  MEMBER [Employee].[Employee Department].[Dummy] AS 
+    [Employee].[Employee Department].DefaultMember 
+   ,SOLVE_ORDER = 500 
+  SET [Measures.Selection_0_0] AS 
+    {[Measures].[Reseller Sales Amount]} 
+  SET [Date.Calendar.Selection_1_0] AS 
+    {[Date].[Calendar].DefaultMember} 
+  SET [Customer.Customer Geography.Selection_1_1] AS 
+    {[Customer].[Customer Geography].DefaultMember} 
+  SET [Date.Calendar.Selection_2_0] AS 
+    {
+      [Date].[Calendar].[Calendar Year].&[2005]
+     ,[Date].[Calendar].[Calendar Year].&[2009]
+     ,[Date].[Calendar].[Calendar Year].&[2010]
+    } 
+  SET [DrillDownLevel.Customer.Customer Geography.Selection_2_1] AS 
+    {
+      DrillDownMember
+      (
+        {
+          DrillDownLevel({[Customer].[Customer Geography].[All Customers]})
+        }
+       ,{[Customer].[Customer Geography].[Country].&[Canada]}
+       ,RECURSIVE
+      )
+    } 
+  SET [Employee.Employee Department.Selection_3_0] AS 
+    {[Employee].[Employee Department].DefaultMember} 
+SELECT 
+  {[Measures.Selection_0_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {
+	
+	{
+      {
+          [Date.Calendar.Selection_1_0]*
+          [Customer.Customer Geography.Selection_1_1]*
+          {[Employee].[Employee Department].[Dummy]}
+      }
+     ,{
+          [Date.Calendar.Selection_2_0]*
+          [DrillDownLevel.Customer.Customer Geography.Selection_2_1]*
+          {[Employee].[Employee Department].[Dummy]}
+      }
+     ,{
+          {[Date].[Calendar].[Dummy]}*
+          {[Customer].[Customer Geography].[Dummy]}*
+          [Employee.Employee Department.Selection_3_0]
+      }
+    },
+	{
+      {
+          [Date.Calendar.Selection_1_0]*
+          [Customer.Customer Geography.Selection_1_1]*
+          {[Employee].[Employee Department].[Dummy]}
+      }
+     ,{
+          [Date.Calendar.Selection_2_0]*
+          [DrillDownLevel.Customer.Customer Geography.Selection_2_1]*
+          {[Employee].[Employee Department].[Dummy]}
+      }
+     ,{
+          {[Date].[Calendar].[Dummy]}*
+          {[Customer].[Customer Geography].[Dummy]}*
+          [Employee.Employee Department.Selection_3_0]
+      }
+    }
+
+	}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM [Adventure Works];

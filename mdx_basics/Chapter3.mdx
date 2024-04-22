@@ -1,0 +1,53 @@
+-- This MDX script provides various examples of querying dimension members, hierarchies, and levels
+-- in the "Adventure Works" cube, specifically focusing on customer geography and sales data.
+
+-- Querying all members of the Customer dimension.
+SELECT [Customer].members ON COLUMNS FROM [Adventure Works];
+
+-- Displaying Internet Sales Amount by all customer geographies.
+SELECT [Measures].[Internet Sales Amount] ON COLUMNS, [Customer].[Customer Geography].members ON ROWS FROM [Adventure Works];
+
+-- Displaying Internet Sales Amount by country within the customer geography.
+SELECT [Measures].[Internet Sales Amount] ON COLUMNS, [Customer].[Customer Geography].[Country].members ON ROWS FROM [Adventure Works];
+
+-- Displaying Internet Sales Amount for customers in France.
+SELECT [Measures].[Internet Sales Amount] ON COLUMNS, [Customer].[Customer Geography].[Country].[France].members ON ROWS FROM [Adventure Works];
+
+-- Displaying children of the France node in the Customer Geography hierarchy.
+SELECT [Measures].[Internet Sales Amount] ON COLUMNS, [Customer].[Customer Geography].[Country].[France].children ON ROWS FROM [Adventure Works];
+
+-- Displaying grandchildren (cities under France) in the Customer Geography hierarchy.
+SELECT [Measures].[Internet Sales Amount] ON COLUMNS, descendants([Customer].[Customer Geography].[Country].[France], [Customer].[Customer Geography].[City]) ON ROWS FROM [Adventure Works];
+
+-- Checking if a member named 'Crystal Zheng' exists in the Customer dimension, under the name 'Crystal Zhen'.
+-- Informally:
+SELECT [Customer].[Customer Geography].[Customer].[Crystal Zhen] ON COLUMNS FROM [Adventure Works];
+-- More formally using EXISTS:
+SELECT EXISTS([Customer].[Customer Geography].[Customer].[Crystal Zhen], [Customer].[Customer Geography].members) ON COLUMNS FROM [Adventure Works];
+
+-- Hierarchizing the descendants of 'Crystal Zheng' and showcasing sibling and parent-child relationships.
+-- Displaying siblings of Crystal Zheng:
+SELECT [Customer].[Customer Geography].[Customer].[Crystal Zheng].siblings ON ROWS FROM [Adventure Works];
+-- Displaying parent of Crystal Zheng:
+SELECT [Customer].[Customer Geography].[Customer].[Crystal Zheng].parent ON ROWS FROM [Adventure Works];
+-- Displaying ascendants of Crystal Zheng using HIERARCHIZE and ASCENDANTS:
+SELECT hierarchize(ascendants([Customer].[Customer Geography].[Customer].[Crystal Zheng])) ON ROWS FROM [Adventure Works];
+
+-- Using CROSSJOIN to demonstrate multidimensional queries involving dates and sales territories:
+-- Displaying a CROSSJOIN of different sales territories and product categories:
+SELECT CROSSJOIN([Sales Territory].[Sales Territory].[Country], [Product].[Product Categories].[Category]) ON COLUMNS, CROSSJOIN([Date].[Calendar].[Calendar Year], [Date].[Month of Year].[Month of Year]) ON ROWS FROM [Adventure Works];
+
+-- More complex CROSSJOINs incorporating measures like Internet Order Count and Reseller Order Count:
+SELECT CROSSJOIN([Sales Territory].[Sales Territory].[Country], CROSSJOIN([Product].[Product Categories].[Category], {[Measures].[Internet Order Count], [Measures].[Reseller Order Count]})) ON COLUMNS, CROSSJOIN([Date].[Calendar].[Calendar Year], [Date].[Month of Year].[Month of Year]) ON ROWS FROM [Adventure Works];
+
+-- Exploring the concept of COUSIN and RANGE in MDX to traverse and compare different periods and dimensions:
+-- Using COUSIN to compare quarters across different years:
+SELECT {[Date].[Calendar].[Calendar Quarter].[Q1 CY 2003], cousin([Date].[Calendar].[Calendar Quarter].[Q1 CY 2003], [Date].[Calendar].[Calendar Year].[CY 2004])} ON COLUMNS, [Measures].[Reseller Sales Amount] ON ROWS FROM [Adventure Works];
+-- Using RANGE to specify a sequence of quarters:
+SELECT {[Date].[Calendar].[Calendar Quarter].[Q1 CY 2003]:[Date].[Calendar].[Calendar Quarter].[Q3 CY 2003]} ON COLUMNS, [Measures].[Reseller Sales Amount] ON ROWS FROM [Adventure Works];
+
+-- Demonstrating advanced navigation techniques like LEAD and LAG within hierarchies:
+-- Using LEAD to navigate forward through a hierarchy:
+SELECT {[Date].[Calendar].[Calendar Quarter].[Q1 CY 2003], [Date].[Calendar].[Calendar Quarter].[Q1 CY 2003].lead(2)} ON COLUMNS, [Measures].[Reseller Sales Amount] ON ROWS FROM [Adventure Works];
+-- Using LAG to navigate backward:
+SELECT {[Date].[Calendar].[Calendar Quarter].[Q1 CY 2003], [Date].[Calendar].[Calendar Quarter].[Q1 CY 2003].lag(-2)} ON COLUMNS, [Measures].[Reseller Sales Amount] ON ROWS FROM [Adventure Works];

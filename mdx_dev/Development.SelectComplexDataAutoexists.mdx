@@ -1,0 +1,27 @@
+WITH 
+  MEMBER [Measures].[Dummy] AS 
+    [Measures].DefaultMember 
+  MEMBER [Measures].[EmptyRangeDummy] AS 
+    [Measures].DefaultMember 
+  MEMBER [Product].[Category].[Dummy] AS 
+    [Product].[Category].DefaultMember 
+  MEMBER [Product].[Subcategory].[Dummy] AS 
+    [Product].[Subcategory].DefaultMember 
+  MEMBER [Product].[Category].[EmptyRangeDummy] AS 
+    [Product].[Category].DefaultMember 
+  MEMBER [Product].[Subcategory].[EmptyRangeDummy] AS 
+    [Product].[Subcategory].DefaultMember 
+  SET [Measures.Selection_0_0] AS 
+    {{[Measures].[Reseller Sales Amount]}} 
+  SET [DrillDownLevel.Product.Category.Selection_1_0] AS 
+    {{DrillDownLevel({[Product].[Category].DefaultMember})}} 
+  SET [DrillDownLevel.Product.Subcategory.Selection_1_1] AS 
+    {{DrillDownLevel({[Product].[Subcategory].DefaultMember})}} 
+SELECT 
+  {[Measures.Selection_0_0]} ON 0
+ ,{
+      [DrillDownLevel.Product.Category.Selection_1_0]
+    * 
+      [DrillDownLevel.Product.Subcategory.Selection_1_1]
+  } ON 1
+FROM [Adventure Works];

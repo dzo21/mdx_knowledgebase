@@ -1,0 +1,35 @@
+WITH 
+  MEMBER [Measures].[Dummy] AS 
+    [Measures].DefaultMember 
+  MEMBER [Measures].[EmptyRangeDummy] AS 
+    [Measures].DefaultMember 
+  MEMBER [Customer].[Country].[Dummy] AS 
+    [Customer].[Country].DefaultMember 
+  MEMBER [Date].[Calendar Year].[Dummy] AS 
+    [Date].[Calendar Year].DefaultMember 
+  MEMBER [Customer].[Country].[EmptyRangeDummy] AS 
+    [Customer].[Country].DefaultMember 
+  MEMBER [Date].[Calendar Year].[EmptyRangeDummy] AS 
+    [Date].[Calendar Year].DefaultMember 
+  SET [Measures.Selection_0_0] AS 
+    {{[Measures].[Internet Sales Amount]}} 
+  SET [Customer.Country.Selection_1_0] AS 
+    {{[Customer].[Country].DefaultMember}} 
+  SET [DrillDownLevel.Date.Calendar Year.Selection_1_1] AS 
+    {{DrillDownLevel({[Date].[Calendar Year].DefaultMember})}} 
+  SET [Customer.Country.Selection_2_0] AS 
+    {{[Customer].[Country].DefaultMember}} 
+SELECT 
+  NON EMPTY 
+    {[Measures.Selection_0_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {
+        {[Customer.Country.Selection_1_0]}
+      * 
+        {[DrillDownLevel.Date.Calendar Year.Selection_1_1]}
+     ,
+      {[Customer.Country.Selection_2_0]} * {[Date].[Calendar Year].[Dummy]}
+    }
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM [Adventure Works];

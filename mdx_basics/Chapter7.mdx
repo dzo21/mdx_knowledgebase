@@ -1,0 +1,86 @@
+-- This script showcases various time intelligence functions in MDX for analyzing temporal data 
+-- in the "Adventure Works" cube, particularly focusing on fiscal and calendar periods.
+
+-- Displaying the Fiscal Year 2003 from the Adventure Works cube.
+SELECT
+    [Date].[Fiscal].[Fiscal Year].[FY 2003] ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Navigating to the previous fiscal year.
+SELECT
+    [Date].[Fiscal].[Fiscal Year].[FY 2003].PREVMEMBER ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Navigating to the next fiscal year.
+SELECT
+    [Date].[Fiscal].[Fiscal Year].[FY 2003].NEXTMEMBER ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Displaying the previous, current, and next fiscal year simultaneously.
+SELECT
+    {[Date].[Fiscal].[Fiscal Year].[FY 2003].PREVMEMBER, [Date].[Fiscal].[Fiscal Year].[FY 2003], [Date].[Fiscal].[Fiscal Year].[FY 2003].NEXTMEMBER} ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Utilizing the PARALLELPERIOD function to find the equivalent period in the previous fiscal year.
+SELECT
+    PARALLELPERIOD([Date].[Fiscal].[Fiscal Year], 1, [Date].[Fiscal].[Fiscal Year].[FY 2003]) ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Displaying the fiscal year four years into the future, which may return empty if data does not exist.
+SELECT
+    PARALLELPERIOD([Date].[Fiscal].[Fiscal Year], -4, [Date].[Fiscal].[Fiscal Year].[FY 2003]) ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Using the CLOSINGPERIOD function to retrieve the last period in the fiscal year.
+SELECT
+    CLOSINGPERIOD([Date].[Fiscal].[Fiscal Year]) ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Using the OPENINGPERIOD function to retrieve the first period in the fiscal year.
+SELECT
+    OPENINGPERIOD([Date].[Fiscal].[Fiscal Year]) ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Displaying a range of fiscal years from the first to FY 2004.
+SELECT
+    OPENINGPERIOD([Date].[Fiscal].[Fiscal Year]):[Date].[Fiscal].[Fiscal Year].[FY 2004] ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Displaying the range from FY 2004 to the last period in the fiscal dimension.
+SELECT
+    [Date].[Fiscal].[Fiscal Year].[FY 2004]:CLOSINGPERIOD([Date].[Fiscal].[Fiscal Year]) ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Calculating Year-To-Date (YTD) for a specific quarter in the calendar year 2003.
+SELECT
+    YTD([Date].[Calendar].[Calendar Quarter].[Q3 CY 2003]) ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Calculating Quarter-To-Date (QTD) for a specific month in 2003.
+SELECT
+    QTD([Date].[Calendar].[Month].[May 2003]) ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Calculating Month-To-Date (MTD) for a specific date in July 2003.
+SELECT
+    MTD([Date].[Calendar].[Date].[July 3, 2003]) ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Calculating Week-To-Date (WTD) for a specific date in July 2003.
+SELECT
+    WTD([Date].[Calendar].[Date].[July 3, 2003]) ON COLUMNS
+FROM
+    [Adventure Works];

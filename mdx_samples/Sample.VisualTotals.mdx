@@ -1,0 +1,19 @@
+SELECT VisualTotals
+   ({[Date].[Calendar].[Calendar Quarter].&[2007]&[3]
+      ,[Date].[Calendar].[Month].&[2007]&[7]}) ON 0
+FROM [Adventure Works]
+
+
+SELECT
+   VisualTotals
+   ({[Product].[Category].[All Products]
+      ,[Product].[Category].[Accessories]
+      ,[Product].[Category].[Clothing]
+	  ,[Product].[Category].[Components]
+	  ,[Product].[Category].[Bikes]}
+   ) ON Columns
+, [Measures].[Internet Sales Amount] ON Rows
+FROM [Adventure Works]
+
+
+

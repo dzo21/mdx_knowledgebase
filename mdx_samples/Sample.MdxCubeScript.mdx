@@ -1,0 +1,55 @@
+-- calculated script samples
+
+//subcube using the THIS function. So, in the example
+//above, the assignment THIS=50 sets all values within the subcube defined in
+//the preceding SCOPE statement to 50.
+
+
+SCOPE([Measures].[Sales], [Geography].[Region].[North],
+[Period].[Month].[January 2005]);
+THIS=50;
+END SCOPE;
+
+SCOPE([Measures].[Sales]);
+SCOPE([Geography].[Region].[North]);
+SCOPE([Period].[Month].[January 2005]);
+THIS=50;
+END SCOPE;
+END SCOPE;
+END SCOPE;
+
+---
+
+CALCULATE;
+SCOPE([Measures].[Sales], [Period].[Month].[January 2005]);
+THIS = [Period].[Month].[February 2005];
+FREEZE(THIS);
+END SCOPE;
+SCOPE([Measures].[Sales], [Period].[Month].[February 2005]);
+THIS=0;
+END SCOPE;
+
+CALCULATE;
+SCOPE([Measures].[Sales], [Period].[Year-Month].[Month].[January 2005]);
+THIS=ERROR(“Hello World”);
+END SCOPE;
+
+---
+
+//One very useful application for the LANGUAGE() statement is to make a
+//measure that has its format string defined as Currency, display different currency
+//symbols for different members on a dimension.
+
+CALCULATE;
+CREATE MEMBER CURRENTCUBE.[MEASURES].[Currency Test]
+AS [Measures].[Fact Value],
+FORMAT_STRING = “Currency”,
+VISIBLE = 1 ;
+SCOPE([MEASURES].[Currency Test]);
+SCOPE([Account].[Account Structure].&[2]);
+LANGUAGE(THIS)=1033;
+END SCOPE;
+SCOPE([Account].[Account Structure].&[4]);
+LANGUAGE(THIS)=2055;
+END SCOPE;
+END SCOPE;

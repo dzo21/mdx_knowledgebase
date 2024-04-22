@@ -1,0 +1,51 @@
+-- This series of MDX queries demonstrates various ways to query the "Adventure Works" cube,
+-- focusing on different dimensions, hierarchies, and the use of members and crossjoins.
+
+-- Querying a single-hierarchy dimension for sales channel data.
+SELECT [Sales Channel] ON COLUMNS FROM [Adventure Works];
+
+-- Querying a dimension with multiple hierarchies for product data.
+SELECT [Product] ON COLUMNS FROM [Adventure Works];
+
+-- Specifying an attribute hierarchy within a multi-hierarchy dimension for product categories.
+SELECT [Product].[Category] ON COLUMNS FROM [Adventure Works];
+
+-- Accessing all members of the product category hierarchy.
+SELECT [Product].[Category].[All] ON COLUMNS FROM [Adventure Works];
+
+-- Specifying members explicitly within a hierarchy for better clarity in querying.
+SELECT [Product].[Category].members ON COLUMNS FROM [Adventure Works];
+
+-- Selecting members from a specific level within the product category hierarchy.
+SELECT [Product].[Category].[Category].members ON COLUMNS FROM [Adventure Works];
+
+-- Combining two levels of product category data on columns.
+SELECT {[Product].[Category].[Category].members, [Product].[Category].[All Products]} ON COLUMNS FROM [Adventure Works];
+
+-- Using a shorthand to represent two levels of the product category.
+SELECT {[Product].[Category].[Category], [Product].[Category]} ON COLUMNS FROM [Adventure Works];
+
+-- Querying individual members using unique keys and names within a hierarchy and level.
+SELECT [Product].[Category].&[1] ON COLUMNS FROM [Adventure Works]; -- By key
+SELECT [Product].[Category].[Bikes] ON COLUMNS FROM [Adventure Works]; -- By name
+
+-- Including two specific named members within a query.
+SELECT {[Product].[Category].[Bikes], [Product].[Category].[Clothing]} ON COLUMNS FROM [Adventure Works];
+
+-- Utilizing user hierarchies and listing all members within the product categories.
+SELECT [Product].[Product Categories] ON COLUMNS FROM [Adventure Works];
+SELECT [Product].[Product Categories].members ON COLUMNS FROM [Adventure Works];
+
+-- Cross-referencing two hierarchies on columns.
+SELECT {[Product].[Product Categories], [Product].[Category]} ON COLUMNS FROM [Adventure Works];
+
+-- Positioning members on rows to contrast against measures on columns for better data analysis.
+SELECT [Product].[Product Categories].members ON ROWS FROM [Adventure Works];
+SELECT [Measures].[Reseller Sales Amount] ON COLUMNS, [Product].[Product Categories].members ON ROWS FROM [Adventure Works];
+
+-- Crossjoining dimensions to showcase complex relationships, especially across time and products.
+SELECT crossjoin([Date].[Calendar].[Calendar Year], [Date].[Month of Year].[Month of Year]) ON ROWS, [Measures].[Internet Sales Amount] ON COLUMNS FROM [Adventure Works];
+SELECT crossjoin([Product].[Product Categories].[Category], [Date].[Calendar].[Calendar Year]) ON ROWS, [Measures].[Reseller Sales Amount] ON COLUMNS FROM [Adventure Works];
+
+-- Executing a more complex crossjoin with three elements to explore various sales data correlations.
+SELECT crossjoin([Sales Territory].[Sales Territory].[Country], crossjoin([Product].[Product Categories].[Category], {[Measures].[Internet Order Count], [Measures].[Reseller Order Count]})) ON COLUMNS, crossjoin([Date].[Calendar].[Calendar Year], [Date].[Month of Year].[Month of Year]) ON ROWS FROM [Adventure Works];

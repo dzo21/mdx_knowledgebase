@@ -1,0 +1,61 @@
+WITH 
+  MEMBER [Date].[Fiscal].[Dummy] AS 
+    Aggregate([Date].[Fiscal].DefaultMember.Children) 
+  MEMBER [Product].[Product Categories].[Dummy] AS 
+    Aggregate([Product].[Product Categories].DefaultMember.Children) 
+  MEMBER [Date].[Fiscal].[Empty Range] AS 
+    [Date].[Fiscal].DefaultMember 
+  MEMBER [Product].[Product Categories].[Empty Range] AS 
+    [Product].[Product Categories].DefaultMember 
+  SET [Date.Fiscal.Selection_0_0] AS 
+    {
+      [Date].[Fiscal].[All Periods]
+     ,[Date].[Fiscal].[Fiscal Year].&[2007]
+     ,[Date].[Fiscal].[Fiscal Year].&[2009]
+    } 
+  SET [Product.Product Categories.Selection_2_0] AS 
+    {
+      [Product].[Product Categories].[All Products]
+     ,[Product].[Product Categories].[Subcategory].&[20]
+     ,[Product].[Product Categories].[Subcategory].&[15]
+    } 
+  SET [Employee.Employees.Selection_3_0] AS 
+    {
+      [Employee].[Employees].&[277]
+     ,[Employee].[Employees].&[290]
+     ,[Employee].[Employees].&[289]
+     ,[Employee].[Employees].&[293]
+    } 
+SELECT 
+  NON EMPTY 
+    {
+      {
+          VisualTotals
+          (
+            [Date.Fiscal.Selection_0_0]
+           ,'* **'
+          )
+        * 
+          {[Product].[Product Categories].[Dummy]}
+      }
+     ,
+        {[Date].[Fiscal].[Empty Range]}
+      * 
+        {[Product].[Product Categories].[Empty Range]}
+     ,{
+          {[Date].[Fiscal].[Dummy]}
+        * 
+          VisualTotals
+          (
+            [Product.Product Categories.Selection_2_0]
+           ,'* **'
+          )
+      }
+    }
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {VisualTotals([Employee.Employees.Selection_3_0],'* **')}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM [Adventure Works]
+WHERE 
+  {[Measures].[Discount Amount]};

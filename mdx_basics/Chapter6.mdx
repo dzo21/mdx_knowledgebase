@@ -1,0 +1,79 @@
+-- This script demonstrates the creation and use of calculated members in MDX queries for "Adventure Works" cube, 
+-- aiming to enhance analysis with custom measures and formatted outputs.
+
+-- Creating a simple hello world calculated member.
+WITH 
+MEMBER [Measures].[My Measure] AS 'Hello world'
+SELECT
+    [Measures].[My Measure] ON COLUMNS,
+    [Date].[Calendar].[Calendar Year] ON ROWS
+FROM
+    [Adventure Works];
+
+-- Defining aliases for measures to simplify query readability and maintenance.
+WITH 
+MEMBER [Measures].[Customer Sales] AS [Measures].[Internet Sales Amount],
+MEMBER [Measures].[Retailer Sales] AS [Measures].[Reseller Sales Amount]
+SELECT
+    {[Measures].[Customer Sales], [Measures].[Retailer Sales]} ON COLUMNS,
+    [Date].[Calendar].[Calendar Year] ON ROWS
+FROM
+    [Adventure Works];
+
+-- Adding a calculated measure for total sales combining Internet and Reseller Sales Amounts.
+WITH 
+MEMBER [Measures].[Total Sales] AS [Measures].[Internet Sales Amount] + [Measures].[Reseller Sales Amount],
+MEMBER [Measures].[Customer Sales] AS [Measures].[Internet Sales Amount],
+MEMBER [Measures].[Retailer Sales] AS [Measures].[Reseller Sales Amount]
+SELECT
+    {[Measures].[Customer Sales], [Measures].[Retailer Sales], [Measures].[Total Sales]} ON COLUMNS,
+    [Date].[Calendar].[Calendar Year] ON ROWS
+FROM
+    [Adventure Works];
+
+-- Applying formatting to the calculated measures to enhance report readability.
+WITH 
+MEMBER [Measures].[Total Sales] AS [Measures].[Internet Sales Amount] + [Measures].[Reseller Sales Amount], FORMAT_STRING="#,###.00€",
+MEMBER [Measures].[Customer Sales] AS [Measures].[Internet Sales Amount], FORMAT_STRING="#,###.00€",
+MEMBER [Measures].[Retailer Sales] AS [Measures].[Reseller Sales Amount], FORMAT_STRING="#,###.00€"
+SELECT
+    {[Measures].[Customer Sales], [Measures].[Retailer Sales], [Measures].[Total Sales]} ON COLUMNS,
+    {[Date].[Calendar].[Calendar Year], [Date].[Calendar]} ON ROWS
+FROM
+    [Adventure Works];
+
+-- Using a set to exclude specific years in a range and displaying sales figures with European currency formatting.
+WITH 
+SET [Not 2006] AS EXCEPT([Date].[Calendar].[Calendar Year].MEMBERS, {[Date].[Calendar].[Calendar Year].[CY 2006]})
+MEMBER [Measures].[Total Sales] AS [Measures].[Internet Sales Amount] + [Measures].[Reseller Sales Amount], FORMAT_STRING="€#,###.00"
+MEMBER [Measures].[Customer Sales] AS [Measures].[Internet Sales Amount], FORMAT_STRING="€#,###.00"
+MEMBER [Measures].[Retailer Sales] AS [Measures].[Reseller Sales Amount], FORMAT_STRING="€#,###.00"
+SELECT
+    {[Measures].[Customer Sales], [Measures].[Retailer Sales], [Measures].[Total Sales]} ON COLUMNS,
+    {[Not 2006], [Date].[Calendar]} ON ROWS
+FROM
+    [Adventure Works];
+
+-- Demonstrating the use of the NOT operator in a calculated set to include only specific years.
+WITH 
+SET [Not 2006] AS EXCEPT([Date].[Calendar].[Calendar Year].MEMBERS, {[Date].[Calendar].[Calendar Year].[CY 2006]})
+MEMBER [Measures].[Total Sales] AS [Measures].[Internet Sales Amount] + [Measures].[Reseller Sales Amount], FORMAT_STRING="€#,###.00"
+MEMBER [Measures].[Customer Sales] AS [Measures].[Internet Sales Amount], FORMAT_STRING="€#,###.00"
+MEMBER [Measures].[Retailer Sales] AS [Measures].[Reseller Sales Amount], FORMAT_STRING="€#,###.00"
+SELECT
+    {[Measures].[Customer Sales], [Measures].[Retailer Sales], [Measures].[Total Sales]} ON COLUMNS,
+    {[Not 2006], [Date].[Calendar]} ON ROWS
+FROM
+    [Adventure Works];
+
+-- Percentage calculation relative to parent category, with error handling for division by zero.
+WITH 
+MEMBER [Measures].[% of Parent] AS
+    IIF([Product].[Product Categories].CURRENTMEMBER.PARENT IS NULL, NULL,
+        [Measures].[Reseller Sales Amount] / ([Product].[Product Categories].CURRENTMEMBER.PARENT, [Measures].[Reseller Sales Amount])
+    ), FORMAT_STRING="Percent"
+SELECT
+    {[Measures].[Reseller Sales Amount], [Measures].[% of Parent]} ON COLUMNS,
+    {[Product].[Product Categories].[Subcategory].[Mountain Bikes], [Product].[Product Categories].[Category].[Bikes], [Product].[Product Categories]} ON ROWS
+FROM
+    [Adventure Works];

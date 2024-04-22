@@ -1,0 +1,24 @@
+-- first splash
+//BEGIN TRAN
+//
+//UPDATE CUBE [WritebackSimple] 
+//SET ([Measures].[Discount Amount], [Date].[Fiscal].[Fiscal Year].&[2008]) = 100
+//USE_EQUAL_ALLOCATION
+//
+//select [Measures].[Discount Amount] on 0 from [WritebackSimple] where [Date].[Fiscal].[Fiscal Year].&[2008]
+//
+//COMMIT TRAN
+
+
+BEGIN TRAN
+
+UPDATE CUBE [WritebackSimple] SET ([Measures].[Discount Amount], [Date].[Fiscal].[Month].&[2008]&[4]) = 100 USE_EQUAL_ALLOCATION
+
+select [Measures].[Discount Amount] on 0 from [WritebackSimple] where [Date].[Fiscal].[Month].&[2008]&[4]
+
+
+COMMIT TRAN
+
+
+
+

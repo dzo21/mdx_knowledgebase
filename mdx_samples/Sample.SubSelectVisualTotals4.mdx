@@ -1,0 +1,104 @@
+WITH 
+  MEMBER [Sales Territory].[Sales Territory].[Dummy] AS 
+    Aggregate([Sales Territory].[Sales Territory].DefaultMember.Children) 
+  MEMBER [Product].[Product Categories].[Dummy] AS 
+    Aggregate([Product].[Product Categories].DefaultMember.Children) 
+  MEMBER [Customer].[Customer Geography].[Dummy] AS 
+    Aggregate([Customer].[Customer Geography].DefaultMember.Children) 
+  MEMBER [Date].[Fiscal Year].[Dummy] AS 
+    Aggregate([Date].[Fiscal Year].DefaultMember.Children) 
+  SET [Measures.Selection_0_0] AS 
+    {
+      [Measures].[Internet Order Count]
+     ,[Measures].[Order Count]
+     ,[Measures].[Reseller Order Count]
+    } 
+  SET [Sales Territory.Sales Territory.Selection_1_0] AS 
+    VisualTotals
+    (
+      {
+        [Sales Territory].[Sales Territory].[Group].&[Europe]
+       ,[Sales Territory].[Sales Territory].[Country].&[France]
+       ,[Sales Territory].[Sales Territory].[Country].&[Germany]
+       ,[Sales Territory].[Sales Territory].[Country].&[United Kingdom]
+       ,[Sales Territory].[Sales Territory].[Group].&[NA]
+       ,[Sales Territory].[Sales Territory].[Group].&[North America]
+       ,[Sales Territory].[Sales Territory].[Country].&[Canada]
+       ,[Sales Territory].[Sales Territory].[Country].&[United States]
+       ,[Sales Territory].[Sales Territory].[Group].&[Pacific]
+       ,[Sales Territory].[Sales Territory].[Country].&[Australia]
+      }
+    ) 
+  SET [Product.Product Categories.Selection_2_0] AS 
+    VisualTotals
+    (
+      {
+        [Product].[Product Categories].[Category].&[4]
+       ,[Product].[Product Categories].[Subcategory].&[1]
+       ,[Product].[Product Categories].[Subcategory].&[2]
+       ,[Product].[Product Categories].[Subcategory].&[3]
+       ,[Product].[Product Categories].[Category].&[3]
+       ,[Product].[Product Categories].[Category].&[2]
+      }
+    ) 
+  SET [Customer.Customer Geography.Selection_2_1] AS 
+    VisualTotals
+    (
+      {
+        [Customer].[Customer Geography].[Country].&[Germany]
+       ,[Customer].[Customer Geography].[Country].&[France]
+       ,[Customer].[Customer Geography].[Country].&[Australia]
+      }
+    ) 
+  SET [Date.Fiscal Year.Selection_2_2] AS 
+    VisualTotals
+    (
+      {
+        [Date].[Fiscal Year].&[2006]
+       ,[Date].[Fiscal Year].&[2007]
+       ,[Date].[Fiscal Year].&[2008]
+      }
+    ) 
+SELECT 
+  NON EMPTY 
+    {[Measures.Selection_0_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {
+      {
+          Order
+          (
+            VisualTotals
+            (
+              [Sales Territory.Sales Territory.Selection_1_0]
+             ,'* **'
+            )
+           ,[Measures].[Internet Order Quantity]
+           ,BDESC
+          )*
+          {[Product].[Product Categories].[Dummy]}*
+          {[Customer].[Customer Geography].[Dummy]}*
+          {[Date].[Fiscal Year].[Dummy]}
+      }
+     ,Generate
+      (
+        [Product.Product Categories.Selection_2_0]
+       ,Generate
+        (
+          [Customer.Customer Geography.Selection_2_1]
+         ,Order
+          (
+              {[Sales Territory].[Sales Territory].[Dummy]}*
+              {[Product].[Product Categories].CurrentMember}*
+              {[Customer].[Customer Geography].CurrentMember}*
+              [Date.Fiscal Year.Selection_2_2]
+           ,[Measures].[Internet Order Quantity]
+           ,BDESC
+          )
+         ,ALL
+        )
+       ,ALL
+      )
+    }
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM [Adventure Works];

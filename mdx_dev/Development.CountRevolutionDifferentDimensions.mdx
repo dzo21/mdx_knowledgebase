@@ -1,0 +1,251 @@
+
+
+
+//
+// Old: 
+//WITH 
+//  MEMBER [Measures].[Dummy] AS 
+//    [Measures].DefaultMember 
+//  MEMBER [Measures].[EmptyRangeDummy] AS 
+//    [Measures].DefaultMember 
+//  MEMBER [Date].[Calendar].[Dummy] AS 
+//    [Date].[Calendar].DefaultMember 
+//  MEMBER [Geography].[Geography].[Dummy] AS 
+//    [Geography].[Geography].DefaultMember 
+//  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
+//    [Date].[Calendar].DefaultMember 
+//  MEMBER [Geography].[Geography].[EmptyRangeDummy] AS 
+//    [Geography].[Geography].DefaultMember 
+//  SET [Measures.Selection_0_0] AS 
+//    {{[Measures].[Reseller Sales Amount]}} 
+//  SET [DrillDownLevel.Date.Calendar.Selection_1_0] AS 
+//    {{DrillDownLevel({[Date].[Calendar].DefaultMember})}} 
+//  SET [DrillDownLevel.Geography.Geography.Selection_1_1] AS 
+//    {{DrillDownLevel({[Geography].[Geography].DefaultMember})}} 
+//    
+//  SET [Date_Set] AS 
+//    Order
+//    (
+//      NonEmpty
+//      (
+//        [DrillDownLevel.Date.Calendar.Selection_1_0]
+//       ,[Measures].[Internet Sales Amount]
+//      )
+//     ,[Measures].[Internet Sales Amount]
+//     ,desc
+//    ) 
+//  MEMBER [Measures].[DateRank] AS 
+//    Rank
+//    (
+//      [Date].[Calendar].CurrentMember
+//     ,[Date_Set]
+//    ) 
+//  SET [Geography_Set] AS 
+//    Order
+//    (
+//      NonEmpty
+//      (
+//        [DrillDownLevel.Geography.Geography.Selection_1_1]
+//       ,[Measures].[Internet Sales Amount]
+//      )
+//     ,[Measures].[Internet Sales Amount]
+//     ,desc
+//    ) 
+//  MEMBER [Measures].[GeopraphyRank] AS 
+//    Rank
+//    (
+//      [Geography].[Geography].CurrentMember
+//     ,[Geography_Set]
+//    ) 
+//SELECT 
+//  {
+//    [Measures].[DateRank]
+//   ,[Measures].[GeopraphyRank]
+//  } ON 0
+// ,Generate
+//  (
+//    [DrillDownLevel.Date.Calendar.Selection_1_0]
+//   ,TopCount
+//    (
+//      Order
+//      (
+//          [Date].[Calendar].CurrentMember
+//        * 
+//          [DrillDownLevel.Geography.Geography.Selection_1_1]
+//       ,[Measures].[Internet Sales Amount]
+//       ,DESC
+//      )
+//     ,10
+//    )
+//  ) ON 1
+//FROM [Adventure Works];
+
+
+
+// Test with defferent Dimensions
+//WITH 
+//  MEMBER [Measures].[Dummy] AS 
+//    [Measures].DefaultMember 
+//  MEMBER [Measures].[EmptyRangeDummy] AS 
+//    [Measures].DefaultMember 
+//  MEMBER [Date].[Calendar].[Dummy] AS 
+//    [Date].[Calendar].DefaultMember 
+//  MEMBER [Geography].[Geography].[Dummy] AS 
+//    [Geography].[Geography].DefaultMember 
+//  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
+//    [Date].[Calendar].DefaultMember 
+//  MEMBER [Geography].[Geography].[EmptyRangeDummy] AS 
+//    [Geography].[Geography].DefaultMember 
+//  SET [Measures.Selection_1_0] AS 
+//    {{[Measures].[Reseller Sales Amount]}} 
+//  SET [DrillDownLevel.Date.Calendar.Selection_0_0] AS 
+//    {{DrillDownLevel({[Date].[Calendar].DefaultMember})}} 
+//  SET [DrillDownLevel.Geography.Geography.Selection_0_1] AS 
+//    {{DrillDownLevel({[Geography].[Geography].DefaultMember})}} 
+//  SET [Date.Calender.0_0] AS 
+//    Extract
+//    (
+//      NonEmpty
+//      (
+//          [DrillDownLevel.Date.Calendar.Selection_0_0]*
+//          [DrillDownLevel.Geography.Geography.Selection_0_1]*
+//          [Measures.Selection_1_0]
+//      )
+//     ,[Date].[Calendar]
+//    ) 
+//  SET [Geography.Geography.0_1] AS 
+//    Extract
+//    (
+//      NonEmpty
+//      (
+//          [DrillDownLevel.Date.Calendar.Selection_0_0]*
+//          [DrillDownLevel.Geography.Geography.Selection_0_1]*
+//          [Measures.Selection_1_0]
+//      )
+//     ,[Geography].[Geography]
+//    ) 
+//  MEMBER [Measures].[DateCalendarRank] AS 
+//    Rank
+//    (
+//      [Date].[Calendar].CurrentMember
+//     ,[Date.Calender.0_0]
+//    ) 
+//  MEMBER [Measures].[GeographyGeographyRank] AS 
+//    Rank
+//    (
+//      [Geography].[Geography].CurrentMember
+//     ,[Geography.Geography.0_1]
+//    ) 
+//SELECT 
+//  NON EMPTY 
+//    {
+//	[Measures.Selection_1_0]
+//      ,[Measures].[DateCalendarRank]
+//     ,[Measures].[GeographyGeographyRank]
+//    } ON 0
+// ,NON EMPTY 
+//    {[Date.Calender.0_0] * [Geography.Geography.0_1]} ON 1
+//FROM [Adventure Works];
+// Result:
+//		Reseller Sales Amount	DateCalendarRank	GeographyGeographyRank
+//All Periods	All Geographies	$2,613,013.87	1	1
+//All Periods	Australia	$103,776.30	1	2
+//All Periods	Canada	$567,631.72	1	3
+//All Periods	Germany	$4,491.81	1	4
+//All Periods	United Kingdom	$344,451.04	1	5
+//All Periods	United States	$1,592,662.99	1	6
+//CY 2005	All Geographies	$239,288.55	2	1
+//CY 2005	Australia	(null)	2	2
+//CY 2005	Canada	$30,431.31	2	3
+//CY 2005	Germany	(null)	2	4
+//CY 2005	United Kingdom	(null)	2	5
+//CY 2005	United States	$208,857.24	2	6
+//CY 2006	All Geographies	$997,970.26	3	1
+//CY 2006	Australia	(null)	3	2
+//CY 2006	Canada	$176,691.50	3	3
+//CY 2006	Germany	(null)	3	4
+//CY 2006	United Kingdom	$108,212.04	3	5
+//CY 2006	United States	$713,066.72	3	6
+//CY 2007	All Geographies	$1,375,755.06	4	1
+//CY 2007	Australia	$103,776.30	4	2
+//CY 2007	Canada	$360,508.91	4	3
+//CY 2007	Germany	$4,491.81	4	4
+//CY 2007	United Kingdom	$236,239.00	4	5
+//CY 2007	United States	$670,739.03	4	6
+// Old: 
+//WITH 
+//  MEMBER [Measures].[Dummy] AS 
+//    [Measures].DefaultMember 
+//  MEMBER [Measures].[EmptyRangeDummy] AS 
+//    [Measures].DefaultMember 
+//  MEMBER [Date].[Calendar].[Dummy] AS 
+//    [Date].[Calendar].DefaultMember 
+//  MEMBER [Geography].[Geography].[Dummy] AS 
+//    [Geography].[Geography].DefaultMember 
+//  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
+//    [Date].[Calendar].DefaultMember 
+//  MEMBER [Geography].[Geography].[EmptyRangeDummy] AS 
+//    [Geography].[Geography].DefaultMember 
+//  SET [Measures.Selection_0_0] AS 
+//    {{[Measures].[Reseller Sales Amount]}} 
+//  SET [DrillDownLevel.Date.Calendar.Selection_1_0] AS 
+//    {{DrillDownLevel({[Date].[Calendar].DefaultMember})}} 
+//  SET [DrillDownLevel.Geography.Geography.Selection_1_1] AS 
+//    {{DrillDownLevel({[Geography].[Geography].DefaultMember})}} 
+//    
+//  SET [Date_Set] AS 
+//    Order
+//    (
+//      NonEmpty
+//      (
+//        [DrillDownLevel.Date.Calendar.Selection_1_0]
+//       ,[Measures].[Internet Sales Amount]
+//      )
+//     ,[Measures].[Internet Sales Amount]
+//     ,desc
+//    ) 
+//  MEMBER [Measures].[DateRank] AS 
+//    Rank
+//    (
+//      [Date].[Calendar].CurrentMember
+//     ,[Date_Set]
+//    ) 
+//  SET [Geography_Set] AS 
+//    Order
+//    (
+//      NonEmpty
+//      (
+//        [DrillDownLevel.Geography.Geography.Selection_1_1]
+//       ,[Measures].[Internet Sales Amount]
+//      )
+//     ,[Measures].[Internet Sales Amount]
+//     ,desc
+//    ) 
+//  MEMBER [Measures].[GeopraphyRank] AS 
+//    Rank
+//    (
+//      [Geography].[Geography].CurrentMember
+//     ,[Geography_Set]
+//    ) 
+//SELECT 
+//  {
+//    [Measures].[DateRank]
+//   ,[Measures].[GeopraphyRank]
+//  } ON 0
+// ,Generate
+//  (
+//    [DrillDownLevel.Date.Calendar.Selection_1_0]
+//   ,TopCount
+//    (
+//      Order
+//      (
+//          [Date].[Calendar].CurrentMember
+//        * 
+//          [DrillDownLevel.Geography.Geography.Selection_1_1]
+//       ,[Measures].[Internet Sales Amount]
+//       ,DESC
+//      )
+//     ,10
+//    )
+//  ) ON 1
+//FROM [Adventure Works];

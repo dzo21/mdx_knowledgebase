@@ -1,0 +1,107 @@
+WITH 
+  SET [Internet Sales.Selection_0_0] AS 
+    {
+      {
+        [Measures].[Growth in Customer Base]
+       ,[Measures].[Internet Average Sales Amount]
+       ,[Measures].[Internet Average Unit Price]
+       ,[Measures].[Internet Extended Amount]
+       ,[Measures].[Internet Freight Cost]
+       ,[Measures].[Internet Gross Profit]
+       ,[Measures].[Internet Gross Profit Margin]
+       ,[Measures].[Internet Order Quantity]
+       ,[Measures].[Internet Ratio to All Products]
+       ,[Measures].[Internet Ratio to Parent Product]
+       ,[Measures].[Internet Sales Amount]
+       ,[Measures].[Internet Standard Product Cost]
+       ,[Measures].[Internet Tax Amount]
+       ,[Measures].[Internet Total Product Cost]
+      }
+    } 
+  SET [Product.Product Categories.Selection_1_0] AS 
+    {
+      [Product].[Product Categories].[Product].&[349]
+     ,[Product].[Product Categories].[All Products]
+     ,[Product].[Product Categories].[Category].&[4]
+     ,[Product].[Product Categories].[Category].&[1]
+     ,[Product].[Product Categories].[Subcategory].&[1]
+     ,[Product].[Product Categories].[Product].&[348]
+     ,[Product].[Product Categories].[Product].&[350]
+     ,[Product].[Product Categories].[Subcategory].&[2]
+     ,[Product].[Product Categories].[Subcategory].&[3]
+     ,[Product].[Product Categories].[Category].&[3]
+     ,[Product].[Product Categories].[Category].&[2]
+    } 
+SELECT 
+  NON EMPTY 
+    {[Internet Sales.Selection_0_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {[Product.Product Categories.Selection_1_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM 
+(
+  SELECT 
+    {
+        {
+          [Product].[Product Categories].[Product].&[349]
+         ,[Product].[Product Categories].[All Products]
+         ,[Product].[Product Categories].[Category].&[4]
+         ,[Product].[Product Categories].[Category].&[1]
+         ,[Product].[Product Categories].[Subcategory].&[1]
+         ,[Product].[Product Categories].[Product].&[348]
+         ,[Product].[Product Categories].[Product].&[350]
+         ,[Product].[Product Categories].[Subcategory].&[2]
+         ,[Product].[Product Categories].[Subcategory].&[3]
+         ,[Product].[Product Categories].[Category].&[3]
+         ,[Product].[Product Categories].[Category].&[2]
+        }
+      - 
+        {
+            Ascendants([Product].[Product Categories].[Product].&[349])
+          - 
+            [Product].[Product Categories].[Product].&[349]
+         ,
+            Ascendants([Product].[Product Categories].[All Products])
+          - 
+            [Product].[Product Categories].[All Products]
+         ,
+            Ascendants([Product].[Product Categories].[Category].&[4])
+          - 
+            [Product].[Product Categories].[Category].&[4]
+         ,
+            Ascendants([Product].[Product Categories].[Category].&[1])
+          - 
+            [Product].[Product Categories].[Category].&[1]
+         ,
+            Ascendants([Product].[Product Categories].[Subcategory].&[1])
+          - 
+            [Product].[Product Categories].[Subcategory].&[1]
+         ,
+            Ascendants([Product].[Product Categories].[Product].&[348])
+          - 
+            [Product].[Product Categories].[Product].&[348]
+         ,
+            Ascendants([Product].[Product Categories].[Product].&[350])
+          - 
+            [Product].[Product Categories].[Product].&[350]
+         ,
+            Ascendants([Product].[Product Categories].[Subcategory].&[2])
+          - 
+            [Product].[Product Categories].[Subcategory].&[2]
+         ,
+            Ascendants([Product].[Product Categories].[Subcategory].&[3])
+          - 
+            [Product].[Product Categories].[Subcategory].&[3]
+         ,
+            Ascendants([Product].[Product Categories].[Category].&[3])
+          - 
+            [Product].[Product Categories].[Category].&[3]
+         ,
+            Ascendants([Product].[Product Categories].[Category].&[2])
+          - 
+            [Product].[Product Categories].[Category].&[2]
+        }
+    } ON 0
+  FROM [Adventure Works]
+);

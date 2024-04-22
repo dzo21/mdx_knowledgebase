@@ -1,0 +1,110 @@
+// Descendants (MDX)
+
+//SELF
+// Returns only descendant members from the specified level or at the specified distance. The function includes the specified member, if the specified level is the level of the specified member.
+// 
+//AFTER
+// Returns descendant members from all levels subordinate to the specified level or distance.
+// 
+//BEFORE
+// Returns descendant members from all levels between the specified member and the specified level, or at the specified distance. It includes the specified member, but does not include members from the specified level or distance.
+// 
+//BEFORE_AND_AFTER
+// Returns descendant members from all levels subordinate to the level of the specified member. It includes the specified member, but does not include members from the specified level or at the specified distance.
+// 
+//SELF_AND_AFTER
+// Returns descendant members from the specified level or at the specified distance and all levels subordinate to the specified level, or at the specified distance.
+// 
+//SELF_AND_BEFORE
+// Returns descendant members from the specified level or at the specified distance, and from all levels between the specified member and the specified level, or at the specified distance, including the specified member.
+// 
+//SELF_BEFORE_AFTER
+// Returns descendant members from all levels subordinate to the level of the specified member, and includes the specified member.
+// 
+//LEAVES
+// Returns leaf descendant members between the specified member and the specified level, or at the specified distance.
+//
+//Descendants
+//
+//( 
+//
+//Member_Expression ,
+//
+//Level_Expression, 
+//
+//SELF
+//
+//)
+
+
+// Beispiel von Elias
+--SELECT [Measures].[Cost] ON 0,
+--DESCENDANTS([Customer].[Customer].[32476],,AFTER) ON 1
+--[Customer].[Customer].[All Customer].CHILDREN ON 1
+--FROM [PurchaseSales]
+
+
+// Beispiel Statement für OLE DB
+//WITH  
+//MEMBER [-CWCAPT-] AS '[Customer].[Customer].currentmember.MEMBER_CAPTION' 
+//MEMBER [-CWLEVEL-] AS '[Customer].[Customer].currentmember.LEVEL_NUMBER' 
+//MEMBER [-MEMBER_NAME-] AS '[Customer].[Customer].currentmember.MEMBER_NAME' 
+//MEMBER [-CHILDREN_CARDINALITY-] AS '[Customer].[Customer].currentmember.CHILDREN_CARDINALITY' 
+//MEMBER [-MEMBER_TYPE-] AS '[Customer].[Customer].currentmember.MEMBER_TYPE' 
+//MEMBER [-LEVEL_UNIQUE_NAME-] AS '[Customer].[Customer].currentmember.LEVEL_UNIQUE_NAME' 
+//MEMBER [-CWLEAF-] AS 'IsLeaf([Customer].[Customer].currentmember)' 
+//SELECT { [-CWCAPT-],[-CWLEVEL-],[-MEMBER_NAME-],[-CHILDREN_CARDINALITY-],[-MEMBER_TYPE-],[-LEVEL_UNIQUE_NAME-],[-CWLEAF-] } ON 0, 
+// arbeitet nur auf der untersten Ebene
+--{  FILTER ([Customer].[Customer].[Germany].Children,  ( VBAMDX.InStr([-CWCAPT-], "12")  > 0 )  ) } ON 1 
+// mit work with SELF
+--{  FILTER (DESCENDANTS([Customer].[Customer].[Germany].Children,,SELF),  ( VBAMDX.InStr([-CWCAPT-], "12")  > 0 )  ) } ON 1 
+// leere Menge
+--{  FILTER (DESCENDANTS([Customer].[Customer].[Germany].Children,,AFTER),  ( VBAMDX.InStr([-CWCAPT-], "12")  > 0 )  ) } ON 1 
+// leere Menge
+--{  FILTER (DESCENDANTS([Customer].[Customer].[Germany].Children,,BEFORE_AND_AFTER),  ( VBAMDX.InStr([-CWCAPT-], "12")  > 0 )  ) } ON 1 
+// leere Menge
+--{  FILTER (DESCENDANTS([Customer].[Customer].Children,,SELF),  ( VBAMDX.InStr([-CWCAPT-], "30012")  > 0 )  ) } ON 1 
+// 20101111 solution
+--{  FILTER (DESCENDANTS([Customer].[Customer].[Germany].Children,,SELF_AND_AFTER),  ( VBAMDX.InStr([-CWCAPT-], "30012")  > 0 )  ) } ON 1 
+// mit AND Verkn. (fault)
+-- {  FILTER ((DESCENDANTS([Customer].[Customer].[Germany].Children,,SELF_AND_AFTER)) AND 
+--			(DESCENDANTS([Customer].[Customer].[Italy].Children,,SELF_AND_AFTER)),  ( VBAMDX.InStr([-CWCAPT-], "30012")  > 0 )  ) } ON 1 
+// mit AND Verknüpft (fault)
+-- {  FILTER (DESCENDANTS(([Customer].[Customer].[Germany].Children) AND ([Customer].[Customer].[Italy].Children),,SELF_AND_AFTER) [Customer].[Customer].[Italy].Children,,SELF_AND_AFTER),  ( VBAMDX.InStr([-CWCAPT-], "30012")  > 0 )  ) } ON 1 
+// 20101111 solution
+//{  FILTER (DESCENDANTS([Customer].[Customer].[Germany].Children,,SELF_AND_AFTER),  ( VBAMDX.InStr([-CWCAPT-], "12")  > 0 )  ) } ON 1 
+//FROM [PurchaseSales] CELL PROPERTIES VALUE
+
+
+//Versuche am 2010112
+//WITH  MEMBER [-CWCAPT-] AS '[Customer].[Customer].currentmember.MEMBER_CAPTION' 
+//MEMBER [-CWLEVEL-] AS '[Customer].[Customer].currentmember.LEVEL_NUMBER' 
+//MEMBER [-MEMBER_NAME-] AS '[Customer].[Customer].currentmember.MEMBER_NAME' 
+//MEMBER [-CHILDREN_CARDINALITY-] AS '[Customer].[Customer].currentmember.CHILDREN_CARDINALITY' 
+//MEMBER [-MEMBER_TYPE-] AS '[Customer].[Customer].currentmember.MEMBER_TYPE' 
+//MEMBER [-LEVEL_UNIQUE_NAME-] AS '[Customer].[Customer].currentmember.LEVEL_UNIQUE_NAME' 
+//MEMBER [-CWLEAF-] AS 'IsLeaf([Customer].[Customer].currentmember)' 
+//SELECT { [-CWCAPT-],[-CWLEVEL-],[-MEMBER_NAME-],[-CHILDREN_CARDINALITY-],[-MEMBER_TYPE-],[-LEVEL_UNIQUE_NAME-],[-CWLEAF-] } ON 0, 
+//{  FILTER (DESCENDANTS([Customer].[Customer].Children,,SELF_AND_AFTER),  ( [-CWCAPT-] = "11249" )  ) } ON 1 
+//FROM [PurchaseSales] CELL PROPERTIES VALUE
+
+
+
+
+
+// Beispiel Statement für OLE DB
+//WITH  
+//MEMBER [-CWCAPT-] AS '[Customer].[Customer].currentmember.MEMBER_CAPTION' 
+//MEMBER [-CWLEVEL-] AS '[Customer].[Customer].currentmember.LEVEL_NUMBER' 
+//MEMBER [-MEMBER_NAME-] AS '[Customer].[Customer].currentmember.MEMBER_NAME' 
+//MEMBER [-CHILDREN_CARDINALITY-] AS '[Customer].[Customer].currentmember.CHILDREN_CARDINALITY' 
+//MEMBER [-MEMBER_TYPE-] AS '[Customer].[Customer].currentmember.MEMBER_TYPE' 
+//MEMBER [-LEVEL_UNIQUE_NAME-] AS '[Customer].[Customer].currentmember.LEVEL_UNIQUE_NAME' 
+//MEMBER [-CWLEAF-] AS 'IsLeaf([Customer].[Customer].currentmember)' 
+//SELECT { [-CWCAPT-],[-CWLEVEL-],[-MEMBER_NAME-],[-CHILDREN_CARDINALITY-],[-MEMBER_TYPE-],[-LEVEL_UNIQUE_NAME-],[-CWLEAF-] } ON 0, 
+//{  FILTER (DESCENDANTS([Customer].[Customer].Children,,SELF),  ( VBAMDX.InStr([-CWCAPT-], "Germany")  > 0 )  ) } ON 1 
+//FROM [PurchaseSales] CELL PROPERTIES VALUE
+
+
+// 20101122 MDX Capture
+WITH  MEMBER [-CWCAPT-] AS '[Customer].[Customer].currentmember.MEMBER_CAPTION' MEMBER [-CWLEVEL-] AS '[Customer].[Customer].currentmember.LEVEL_NUMBER' MEMBER [-MEMBER_NAME-] AS '[Customer].[Customer].currentmember.MEMBER_NAME' MEMBER [-CHILDREN_CARDINALITY-] AS '[Customer].[Customer].currentmember.CHILDREN_CARDINALITY' MEMBER [-MEMBER_TYPE-] AS '[Customer].[Customer].currentmember.MEMBER_TYPE' MEMBER [-LEVEL_UNIQUE_NAME-] AS '[Customer].[Customer].currentmember.LEVEL_UNIQUE_NAME' MEMBER [-CWLEAF-] AS 'IsLeaf([Customer].[Customer].currentmember)' SELECT { [-CWCAPT-],[-CWLEVEL-],[-MEMBER_NAME-],[-CHILDREN_CARDINALITY-],[-MEMBER_TYPE-],[-LEVEL_UNIQUE_NAME-],[-CWLEAF-] } ON 0, {  FILTER (DESCENDANTS([Customer].[Customer].[Germany].Children,,SELF_AND_AFTER),  ( [-CWCAPT-] = "11333" )  ) } ON 1 FROM [PurchaseSales] CELL PROPERTIES VALUE

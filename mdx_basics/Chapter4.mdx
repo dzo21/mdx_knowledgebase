@@ -1,0 +1,74 @@
+-- This MDX script demonstrates various methods to sort and order data in the "Adventure Works" cube,
+-- specifically focusing on Product Subcategories by different Sales Amount measures.
+
+-- Displaying Internet Sales Amount by Product Subcategories without sorting.
+SELECT
+    [Measures].[Internet Sales Amount]
+    ON COLUMNS,
+    [Product].[Product Categories].[Subcategory]
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Sorting Product Subcategories by Internet Sales Amount in ascending order.
+SELECT
+    [Measures].[Internet Sales Amount]
+    ON COLUMNS,
+    ORDER([Product].[Subcategory].[Subcategory], [Measures].[Internet Sales Amount], ASC)
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Sorting Product Subcategories by Internet Sales Amount in descending order.
+SELECT
+    [Measures].[Internet Sales Amount]
+    ON COLUMNS,
+    ORDER([Product].[Subcategory].[Subcategory], [Measures].[Internet Sales Amount], DESC)
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Sorting Product Subcategories by Reseller Sales Amount in descending order, demonstrating sorting by a different measure.
+SELECT
+    [Measures].[Internet Sales Amount]
+    ON COLUMNS,
+    ORDER([Product].[Product Categories].[Subcategory], [Measures].[Reseller Sales Amount], BDESC)
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Showing both Internet and Reseller Sales Amounts for comparison, sorted by Reseller Sales Amount in descending order.
+SELECT
+    {[Measures].[Internet Sales Amount], [Measures].[Reseller Sales Amount]}
+    ON COLUMNS,
+    ORDER([Product].[Product Categories].[Subcategory], [Measures].[Reseller Sales Amount], BDESC)
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Demonstrating a CROSSJOIN with sorting: Sorting a crossjoin of categories and subcategories by Internet Sales Amount in descending order.
+SELECT
+    [Measures].[Internet Sales Amount]
+    ON COLUMNS,
+    NON EMPTY ORDER(CROSSJOIN([Product].[Category].[Category], [Product].[Subcategory].[Subcategory]), [Measures].[Internet Sales Amount], DESC)
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Using HIERARCHIZE to enforce the natural order of hierarchy for a custom set of subcategories.
+SELECT
+    [Measures].[Internet Sales Amount]
+    ON COLUMNS,
+    HIERARCHIZE({[Product].[Subcategory].[Touring Bikes], [Product].[Subcategory].[Mountain Bikes]})
+    ON ROWS
+FROM
+    [Adventure Works];
+
+-- Reversing the order of hierarchy using HIERARCHIZE with the POST option.
+SELECT
+    [Measures].[Internet Sales Amount]
+    ON COLUMNS,
+    HIERARCHIZE({[Product].[Subcategory].[Touring Bikes], [Product].[Subcategory].[Mountain Bikes]}, POST)
+    ON ROWS
+FROM
+    [Adventure Works];

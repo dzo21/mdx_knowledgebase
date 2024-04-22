@@ -1,0 +1,10 @@
+-- This query retrieves the top 10 most CPU-intensive objects from the SQL Server Analysis Services (SSAS) environment,
+-- aiding in identifying which objects are consuming the most CPU resources.
+
+SELECT TOP 10
+    OBJECT_ID,                 -- The identifier of the object
+    OBJECT_CPU_TIME_MS         -- CPU time used by the object in milliseconds
+FROM 
+    $system.DISCOVER_OBJECT_ACTIVITY
+ORDER BY
+    OBJECT_CPU_TIME_MS DESC;   -- Orders the results by CPU time in descending order to highlight the highest values

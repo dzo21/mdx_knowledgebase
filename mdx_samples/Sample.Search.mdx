@@ -1,0 +1,576 @@
+select [Customer].[City].members on 0, null on 1 from [Adventure Works]
+
+select 
+WDSP.FilterSet([Customer].[City].members, "\bA\S*e\b") on 0, 
+null on 1 from [Adventure Works]
+
+
+select [Sales Summary Order Details].[Sales Order Number].members 
+on 0, 
+null on 1 
+from [Adventure Works]
+
+select 
+WDSP.FilterSet([Sales Summary Order Details].[Sales Order Number].members, "\bS\S*499\b")
+dimension properties [Sales Summary Order Details].[Sales Order Number].[Sales Order Number]
+on 0, 
+null on 1
+from [Adventure Works]
+
+with member
+[Measures].[test] as 
+select [Customer].[Customer Geography].CurrentMember.Properties("Gender")
+WDSP.FilterSet([Customer].[Customer Geography].members, "\bM\S*o\b")
+on 0, 
+[Measures].[test] on 1
+from [Adventure Works]
+
+with member
+[Measures].[test] as 
+[Customer].[Customer Geography].CurrentMember.Properties("Gender")
+select
+WDSP.FilterSet([Customer].[Customer Geography].members, "\bM\S*o\b")
+on 0, 
+[Measures].[test] on 1
+from [Adventure Works]
+
+with member
+[Measures].[test] as 
+[Customer].[Customer Geography].CurrentMember.Properties("Gender")
+select
+WDSP.FilterSet([Customer].[Customer Geography].members, "\bM\S*o\b")
+on 0, 
+[Measures].[test] on 1
+from [Adventure Works]
+
+
+WITH 
+  MEMBER [Measures].[test] AS 
+    [Customer].[Customer Geography].CurrentMember.Properties("Gender") 
+	SET [SET23] AS
+	[Customer].[Customer Geography].MEMBERS.Properties("Gender")
+SELECT 
+   [SET23]
+   ON 0
+ ,null ON 1
+FROM [Adventure Works];
+
+
+
+
+
+with member
+[Measures].[test] as 
+[Customer].[Customer Geography].CurrentMember.Properties("Gender")
+select
+WDSP.FilterSet([Customer].[Customer Geography].members, "\bM\S*o\b")
+on 0, 
+WDSP.FilterSet([Measures].[test],  "\bF\S*e\b") on 1
+from [Adventure Works]
+
+
+with member
+[Measures].[test] as 
+[Customer].[Customer Geography].CurrentMember.Properties("Gender")
+select
+[Customer].[Customer Geography].members
+-- WDSP.FilterSet([Customer].[Customer Geography].members, "\bM\S*o\b")
+on 0, 
+-- [Measures].[test] on 1
+WDSP.FilterSet([Measures].[test],  "\bF\S*e\b") on 1
+from [Adventure Works]
+
+
+
+WITH 
+  MEMBER measures.[match1] AS 
+    WDSP.IsLike
+    (
+      [Customer].[Customer].CurrentMember.Properties("Address"
+     ,TYPED)
+     ,"[A-C]%"
+    ) 
+SELECT 
+  {
+    Filter
+    (
+      [Customer].[Customer Geography].MEMBERS
+     ,
+      [Measures].[match1]
+    )
+  }
+  dimension properties [Customer].[Customer].[Address]
+   ON 0
+,NULL ON 1
+FROM [Adventure Works];
+
+
+// search pattern with mdx and attribute values
+WITH 
+  MEMBER measures.[match1] AS 
+    WDSP.IsLike
+    (
+      [Customer].[Customer Geography].CurrentMember.Properties("Address"
+     ,TYPED)
+     ,"[B]%"
+    ) 
+SELECT 
+  {
+    Filter
+    (
+      [Customer].[Customer Geography].MEMBERS
+     ,
+      [Measures].[match1]
+    )
+  }
+  dimension properties [Customer].[Customer Geography].[Address]
+   ON 0
+,NULL ON 1
+FROM [Adventure Works];
+
+
+
+
+
+
+
+
+WITH 
+  MEMBER [Measures].[-DimBrowseLevelKey 0-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("key0"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseLevelKey 1-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("key1"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Sales Order Line-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Line"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Sales Order Number-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Number"
+   ,TYPED) 
+SELECT 
+  {
+    [Measures].[-DimBrowseLevelKey 0-]
+   ,[Measures].[-DimBrowseLevelKey 1-]
+   ,[Measures].[-DimBrowseProp Sales Order Line-]
+   ,[Measures].[-DimBrowseProp Sales Order Number-]
+  } ON 0
+ ,Head
+  (
+    [Reseller Sales Order Details].[Reseller Sales Orders].[Order Number].&[SO43662].Children
+   ,1000
+  ) ON 1
+FROM [$Reseller Sales Order Details]
+CELL PROPERTIES VALUE;
+
+
+WITH 
+  MEMBER [Measures].[-property 0-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Number"
+   ,TYPED) 
+select 
+WDSP.FilterAttributeValueSet([Sales Summary Order Details].[Sales Order Number].members, [Measures].[-property 0-], "\bS\S*62\b")
+on 0, 
+null on 1
+from [Adventure Works]
+
+
+
+
+WITH 
+  MEMBER [Measures].[-DimBrowseLevelKey 0-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("key0"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseLevelKey 1-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("key1"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Sales Order Line-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Line"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Sales Order Number-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Number"
+   ,TYPED) 
+SELECT 
+  WDSP.FilterSet({
+    [Measures].[-DimBrowseLevelKey 0-]
+   ,[Measures].[-DimBrowseLevelKey 1-]
+   ,[Measures].[-DimBrowseProp Sales Order Line-]
+   ,[Measures].[-DimBrowseProp Sales Order Number-]
+  }, "\bS\S*62\b") ON 0
+ ,Head
+  (
+    [Reseller Sales Order Details].[Reseller Sales Orders].[Order Number].&[SO43662].Children
+   ,1000
+  ) ON 1
+FROM [$Reseller Sales Order Details]
+CELL PROPERTIES VALUE;
+
+WITH 
+  MEMBER [Measures].[-DimBrowseLevelKey 0-] AS WDSP.CurrentContext() 
+select [Measures].[-DimBrowseLevelKey 0-] on 0 from [Adventure Works]
+
+
+
+
+WITH 
+  MEMBER [Measures].[-DimBrowseLevelKey 0-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("key0"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseLevelKey 1-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("key1"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Sales Order Line-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Line"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Sales Order Number-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Number"
+   ,TYPED) 
+SELECT 
+  {
+    [Measures].[-DimBrowseLevelKey 0-]
+   ,[Measures].[-DimBrowseLevelKey 1-]
+   ,[Measures].[-DimBrowseProp Sales Order Line-]
+   ,[Measures].[-DimBrowseProp Sales Order Number-]
+  } ON 0
+ ,Head
+  (
+    [Reseller Sales Order Details].[Reseller Sales Orders].[Order Number].&[SO43662].Children
+   ,1000
+  ) ON 1
+FROM [$Reseller Sales Order Details]
+CELL PROPERTIES VALUE;
+
+
+
+
+
+
+select [Customer].[City].members on 0, null on 1 from [Adventure Works]
+
+select 
+WDSP.FilterSet([Customer].[City].members, "\bA\S*e\b") on 0, 
+null on 1 from [Adventure Works]
+
+
+select [Sales Summary Order Details].[Sales Order Number].members 
+on 0, 
+null on 1 
+from [Adventure Works]
+
+select 
+WDSP.FilterSet([Sales Summary Order Details].[Sales Order Number].members, "\bS\S*499\b")
+dimension properties [Sales Summary Order Details].[Sales Order Number].[Sales Order Number]
+on 0, 
+null on 1
+from [Adventure Works]
+
+with member
+[Measures].[test] as 
+select [Customer].[Customer Geography].CurrentMember.Properties("Gender")
+WDSP.FilterSet([Customer].[Customer Geography].members, "\bM\S*o\b")
+on 0, 
+[Measures].[test] on 1
+from [Adventure Works]
+
+with member
+[Measures].[test] as 
+[Customer].[Customer Geography].CurrentMember.Properties("Gender")
+select
+WDSP.FilterSet([Customer].[Customer Geography].members, "\bM\S*o\b")
+on 0, 
+[Measures].[test] on 1
+from [Adventure Works]
+
+with member
+[Measures].[test] as 
+[Customer].[Customer Geography].CurrentMember.Properties("Gender")
+select
+WDSP.FilterSet([Customer].[Customer Geography].members, "\bM\S*o\b")
+on 0, 
+[Measures].[test] on 1
+from [Adventure Works]
+
+
+WITH 
+  MEMBER [Measures].[test] AS 
+    [Customer].[Customer Geography].CurrentMember.Properties("Gender") 
+	SET [SET23] AS
+	[Customer].[Customer Geography].MEMBERS.Properties("Gender")
+SELECT 
+   [SET23]
+   ON 0
+ ,null ON 1
+FROM [Adventure Works];
+
+
+
+
+
+with member
+[Measures].[test] as 
+[Customer].[Customer Geography].CurrentMember.Properties("Gender")
+select
+WDSP.FilterSet([Customer].[Customer Geography].members, "\bM\S*o\b")
+on 0, 
+WDSP.FilterSet([Measures].[test],  "\bF\S*e\b") on 1
+from [Adventure Works]
+
+
+with member
+[Measures].[test] as 
+[Customer].[Customer Geography].CurrentMember.Properties("Gender")
+select
+[Customer].[Customer Geography].members
+-- WDSP.FilterSet([Customer].[Customer Geography].members, "\bM\S*o\b")
+on 0, 
+-- [Measures].[test] on 1
+WDSP.FilterSet([Measures].[test],  "\bF\S*e\b") on 1
+from [Adventure Works]
+
+
+
+WITH 
+  MEMBER measures.[match1] AS 
+    WDSP.IsLike
+    (
+      [Customer].[Customer].CurrentMember.Properties("Address"
+     ,TYPED)
+     ,"[A-C]%"
+    ) 
+SELECT 
+  {
+    Filter
+    (
+      [Customer].[Customer Geography].MEMBERS
+     ,
+      [Measures].[match1]
+    )
+  }
+  dimension properties [Customer].[Customer].[Address]
+   ON 0
+,NULL ON 1
+FROM [Adventure Works];
+
+
+// search pattern with mdx and attribute values
+WITH 
+  MEMBER measures.[match1] AS 
+    WDSP.IsLike
+    (
+      [Customer].[Customer].CurrentMember.Properties("Address"
+     ,TYPED)
+     ,"[B]%"
+    ) 
+SELECT 
+  {
+    Filter
+    (
+      [Customer].[Customer Geography].MEMBERS
+     ,
+      [Measures].[match1]
+    )
+  }
+  dimension properties [Customer].[Customer Geography].[Address]
+   ON 0
+,NULL ON 1
+FROM [Adventure Works];
+
+// search pattern with mdx and member name
+WITH 
+  MEMBER measures.[membercaption] as
+  [Customer].[Customer].CurrentMember.Properties("Caption")
+  MEMBER measures.[match1] AS 
+    WDSP.IsLike
+    (
+      measures.[membercaption]
+     ,"[A]%"
+    ) 
+SELECT 
+  {
+    Filter
+    (
+      [Customer].[Customer Geography].MEMBERS
+     ,
+      [Measures].[match1]
+    )
+  }
+  dimension properties [Customer].[Customer Geography].[Address]
+   ON 0
+,NULL ON 1
+FROM [Adventure Works];
+
+WITH 
+  MEMBER measures.[membercaption] as
+  [Customer].[Customer].CurrentMember.Properties("Caption")
+  MEMBER measures.[match1] AS 
+    WDSP.IsLike
+    (
+      measures.[membercaption]
+     ,"[A]%"
+    ) 
+SELECT 
+  {
+    Filter
+    (
+      [Customer].[Customer Geography].MEMBERS
+     ,
+      [Measures].[match1]
+    )
+  }
+  dimension properties [Customer].[Customer Geography].[Address]
+   ON 0
+,NULL ON 1
+FROM [Adventure Works];
+
+WITH 
+  MEMBER measures.[membercaption] as
+  [Customer].[Customer].CurrentMember.Properties("Caption")
+  MEMBER measures.[match1] AS 
+    WDSP.IsLike
+    (
+      measures.[membercaption]
+     ,"[L]%"
+    ) 
+SELECT 
+  {
+    Filter
+    (
+      [Customer].[Customer Geography].MEMBERS
+     ,
+      [Measures].[match1]
+    )
+  }
+   ON 0
+,NULL ON 1
+FROM [Adventure Works];
+
+
+
+
+WITH 
+  MEMBER measures.[membercaption] as
+  [Customer].[Customer].CurrentMember.Properties("Caption")
+  SELECT 
+  {
+  measures.[membercaption]
+  }
+   ON 0
+,NULL ON 1
+FROM [Adventure Works];
+
+
+
+
+
+
+
+
+
+WITH 
+  MEMBER [Measures].[-DimBrowseLevelKey 0-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("key0"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseLevelKey 1-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("key1"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Sales Order Line-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Line"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Sales Order Number-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Number"
+   ,TYPED) 
+SELECT 
+  {
+    [Measures].[-DimBrowseLevelKey 0-]
+   ,[Measures].[-DimBrowseLevelKey 1-]
+   ,[Measures].[-DimBrowseProp Sales Order Line-]
+   ,[Measures].[-DimBrowseProp Sales Order Number-]
+  } ON 0
+ ,Head
+  (
+    [Reseller Sales Order Details].[Reseller Sales Orders].[Order Number].&[SO43662].Children
+   ,1000
+  ) ON 1
+FROM [$Reseller Sales Order Details]
+CELL PROPERTIES VALUE;
+
+
+WITH 
+  MEMBER [Measures].[-property 0-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Number"
+   ,TYPED) 
+select 
+WDSP.FilterAttributeValueSet([Sales Summary Order Details].[Sales Order Number].members, [Measures].[-property 0-], "\bS\S*62\b")
+on 0, 
+null on 1
+from [Adventure Works]
+
+
+
+
+WITH 
+  MEMBER [Measures].[-DimBrowseLevelKey 0-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("key0"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseLevelKey 1-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("key1"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Sales Order Line-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Line"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Sales Order Number-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Number"
+   ,TYPED) 
+SELECT 
+  WDSP.FilterSet({
+    [Measures].[-DimBrowseLevelKey 0-]
+   ,[Measures].[-DimBrowseLevelKey 1-]
+   ,[Measures].[-DimBrowseProp Sales Order Line-]
+   ,[Measures].[-DimBrowseProp Sales Order Number-]
+  }, "\bS\S*62\b") ON 0
+ ,Head
+  (
+    [Reseller Sales Order Details].[Reseller Sales Orders].[Order Number].&[SO43662].Children
+   ,1000
+  ) ON 1
+FROM [$Reseller Sales Order Details]
+CELL PROPERTIES VALUE;
+
+WITH 
+  MEMBER [Measures].[-DimBrowseLevelKey 0-] AS WDSP.CurrentContext() 
+select [Measures].[-DimBrowseLevelKey 0-] on 0 from [Adventure Works]
+
+
+
+
+WITH 
+  MEMBER [Measures].[-DimBrowseLevelKey 0-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("key0"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseLevelKey 1-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("key1"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Sales Order Line-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Line"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Sales Order Number-] AS 
+    [Reseller Sales Order Details].[Reseller Sales Orders].CurrentMember.Properties("Sales Order Number"
+   ,TYPED) 
+SELECT 
+  {
+    [Measures].[-DimBrowseLevelKey 0-]
+   ,[Measures].[-DimBrowseLevelKey 1-]
+   ,[Measures].[-DimBrowseProp Sales Order Line-]
+   ,[Measures].[-DimBrowseProp Sales Order Number-]
+  } ON 0
+ ,Head
+  (
+    [Reseller Sales Order Details].[Reseller Sales Orders].[Order Number].&[SO43662].Children
+   ,1000
+  ) ON 1
+FROM [$Reseller Sales Order Details]
+CELL PROPERTIES VALUE;
+
+
+
+

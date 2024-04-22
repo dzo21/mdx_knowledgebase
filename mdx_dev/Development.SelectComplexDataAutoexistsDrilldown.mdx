@@ -1,0 +1,29 @@
+WITH 
+  MEMBER [Measures].[Dummy] AS 
+    [Measures].DefaultMember 
+  MEMBER [Measures].[EmptyRangeDummy] AS 
+    [Measures].DefaultMember 
+  MEMBER [Date].[Calendar].[Dummy] AS 
+    [Date].[Calendar].DefaultMember 
+  MEMBER [Geography].[Geography].[Dummy] AS 
+    [Geography].[Geography].DefaultMember 
+  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
+    [Date].[Calendar].DefaultMember 
+  MEMBER [Geography].[Geography].[EmptyRangeDummy] AS 
+    [Geography].[Geography].DefaultMember 
+  SET [Measures.Selection_0_0] AS 
+    {{[Measures].[Reseller Sales Amount]}} 
+  SET [DrillDownLevel.Date.Calendar.Selection_1_0] AS 
+    {{DrillDownLevel({[Date].[Calendar].DefaultMember})}} 
+  SET [DrillDownLevel.Geography.Geography.Selection_1_1] AS 
+    {{DrillDownLevel({[Geography].[Geography].DefaultMember})}} 
+SELECT 
+  NON EMPTY 
+    {[Measures.Selection_0_0]} ON 0
+ ,NON EMPTY 
+    {
+        [DrillDownLevel.Date.Calendar.Selection_1_0]
+      * 
+        [DrillDownLevel.Geography.Geography.Selection_1_1]
+    } ON 1
+FROM [Adventure Works];

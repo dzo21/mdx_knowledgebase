@@ -1,0 +1,515 @@
+// select duplicate tuples from a set
+SELECT
+   {
+      ([Geography].[Country].[United States], [Date].[Calendar].[CY 2004]),
+      ([Geography].[Country].[United States], [Date].[Calendar].[CY 2003]),
+      ([Geography].[Country].[United States], [Date].[Calendar].[CY 2002])
+   } ON COLUMNS,
+DISTINCT(
+   {
+      ([Product].[Product Categories].[Accessories]),
+      ([Product].[Product Categories].[Accessories]),
+      ([Product].[Product Categories].[Bikes]),
+      ([Product].[Product Categories].[Clothing]),
+      ([Product].[Product Categories].[Components]),
+      ([Product].[Product Categories].[Mountain Bikes])
+   }
+) ON ROWS
+FROM [Step-by-Step]
+;
+
+// return the members of a set related to the members of another
+SELECT
+   {[Measures].[Reseller Sales Amount]} ON COLUMNS,
+   {[Date].[Month].[May 2002]} 
+      * EXISTS(
+           {[Employee].[Employee].Members},
+           {[Date].[Calendar].[Q2 CY 2002]},
+           "Sales Targets"
+           )
+   ON ROWS
+FROM [Step-by-Step]
+;
+
+// resolve solve order issues
+WITH
+MEMBER [Measures].[Combined Sales Amount] as
+   ([Measures].[Reseller Sales Amount])+([Measures].[Internet Sales Amount])
+   ,SOLVE_ORDER=1
+MEMBER [Product].[Category].[All Products].[Percent Bikes] as
+   ([Product].[Category].[Bikes])/([Product].[Category].[All Products])
+   ,FORMAT_STRING="Percent"
+   ,SOLVE_ORDER=2
+SELECT
+   {
+      ([Measures].[Reseller Sales Amount]),
+      ([Measures].[Internet Sales Amount]),
+      ([Measures].[Combined Sales Amount])
+   } ON COLUMNS,
+   {[Product].[Category].AllMembers} ON ROWS
+FROM [Step-by-Step]
+;
+
+
+// reference the current member in the expression context
+WITH
+MEMBER [Measures].[Parent Member Name] as
+   IIF(
+      [Product].[Product Categories].CurrentMember.Properties("Level_Number",TYPED)=0,
+      "Not applicable", 
+      [Product].[Product Categories].CurrentMember.Parent.Name
+      )
+MEMBER [Measures].[Percent of Parent] as
+   IIF(
+      [Product].[Product Categories].CurrentMember.Properties("Level_Number",TYPED)=0,
+      "Not applicable",
+      ([Measures].[Reseller Sales Amount])/
+         ([Product].[Product Categories].CurrentMember.Parent, [Measures].[Reseller Sales Amount])
+      )
+   ,FORMAT_STRING="Percent"
+SELECT
+   {
+      ([Measures].[Parent Member Name]),
+      ([Measures].[Reseller Sales Amount]),
+      ([Measures].[Percent of Parent])
+   } ON COLUMNS,
+   {[Product].[Product Categories].AllMembers} ON ROWS
+FROM [Step-by-Step]
+;/*  NOTE: First 10 members only displayed*/
+
+
+// evalueate a set within the current context
+WITH
+MEMBER [Measures].[Number of Products] as
+   Count(
+      [Product].[Product Categories].[Product].Members
+      )
+SELECT
+   {
+      ([Measures].[Reseller Sales Amount]),
+      ([Measures].[Number of Products])
+   } ON COLUMNS,
+   {[Product].[Product Categories].Members} ON ROWS
+FROM [Step-by-Step]
+;/*  NOTE: First 10 members only displayed */
+
+
+// order a set by an expression
+SELECT
+    {([Measures].[Reseller Sales Amount])} ON COLUMNS,
+    Order(
+        {[Product].[Product].[Product].Members},
+        ([Measures].[Reseller Sales Amount]),
+        DESC
+        ) ON ROWS
+FROM [Step-by-Step]
+;
+
+// restore the order of a set to tis natural order
+SELECT
+    {([Measures].[Reseller Sales Amount])} ON COLUMNS,
+    Hierarchize(
+       {
+           ([Product].[Product Categories].[Subcategory].[Road Bikes]), 
+           ([Product].[Product Categories].[All Products]),
+           ([Product].[Product Categories].[Subcategory].[Mountain Bikes]), 
+           ([Product].[Product Categories].[Category].[Bikes]),
+           ([Product].[Product Categories].[Subcategory].[Touring Bikes]) 
+           }
+       ) ON ROWS
+FROM [Step-by-Step]
+;
+
+// retrieve the fisr or last tupels of a set
+SELECT
+    {([Measures].[Reseller Sales Amount])} ON COLUMNS,
+    TopCount(
+        {[Product].[Subcategory].[Subcategory].Members},
+        5,
+        ([Measures].[Reseller Sales Amount])
+        ) ON ROWS
+FROM [Step-by-Step]
+;
+
+SELECT
+    {([Measures].[Reseller Sales Amount])} ON COLUMNS,
+    Tail(
+        Order(
+            {[Product].[Subcategory].[Subcategory].Members},
+            ([Measures].[Reseller Sales Amount]),
+            BDESC
+            ),
+        5
+        ) ON ROWS
+FROM [Step-by-Step]
+;
+
+
+// filter set
+SELECT
+    {
+        ([Measures].[Reseller Sales Amount]),
+        ([Measures].[Internet Sales Amount])
+        } ON COLUMNS,
+    Filter(
+        {[Product].[Product].[Product].Members},
+        ([Measures].[Internet Sales Amount]) > ([Measures].[Reseller Sales Amount])
+        ) ON ROWS
+FROM [Step-by-Step]
+
+// merge two sets
+// -> Except and intersect
+SELECT
+    {([Measures].[Reseller Sales Amount])} ON COLUMNS,
+    Union(
+        TopCount(
+            {[Product].[Product].[Product].Members},
+            10,
+            ([Measures].[Reseller Sales Amount], [Date].[Calendar Year].[CY 2003])
+            ),
+        TopCount(
+            {[Product].[Product].[Product].Members},
+            10,
+            ([Measures].[Reseller Sales Amount], [Date].[Calendar Year].[CY 2004])
+            )
+        ) ON ROWS
+FROM [Step-by-Step]
+;
+
+
+// assemble a merged set through iteration over another set
+SELECT
+    {([Measures].[Reseller Sales Amount])} ON COLUMNS,
+    Generate(
+        {[Product].[Category].[Category].Members},
+        TopCount(
+            EXISTING {[Product].[Product].[Product].Members},
+            5,
+            ([Measures].[Reseller Sales Amount])
+            ),
+        ALL
+        ) ON ROWS
+FROM [Step-by-Step]
+;
+
+//extract members references from a set to from a new set of distinct combinations
+SELECT
+    {([Measures].[Reseller Sales Amount])} ON COLUMNS,
+    Extract(
+        Filter(
+            {[Product].[Product].[Product].Members} * 
+                {[Date].[Calendar].[Month].Members},
+            ([Measures].[Reseller Sales Amount])>160000
+            ),
+        [Product].[Product]
+        ) ON ROWS
+FROM [Step-by-Step]
+;
+
+// sum a set of values
+WITH
+MEMBER [Product].[Subcategory].[Top 5] AS
+    Sum(
+        TopCount(
+            [Product].[Subcategory].[Subcategory].Members,
+            5,
+            ([Measures].[Reseller Sales Amount])
+            ),
+        ([Measures].CurrentMember)
+        )
+SELECT
+    {
+        ([Measures].[Reseller Sales Amount]),
+        ([Measures].[Reseller Transaction Count]),
+        ([Measures].[Reseller Order Count])
+        } ON COLUMNS,
+    TopCount(
+        [Product].[Subcategory].[Subcategory].Members,
+        5,
+        ([Measures].[Reseller Sales Amount])
+        ) +
+        {
+            ([Product].[Subcategory].[Top 5]),
+            ([Product].[Subcategory].[All Products])
+            } ON ROWS
+FROM [Step-by-Step]
+;
+
+
+// aggregate a set of values based on their unterlying aggregate functions
+WITH
+MEMBER [Product].[Subcategory].[Top 5] AS
+    Aggregate(
+        TopCount(
+            [Product].[Subcategory].[Subcategory].Members,
+            5,
+            ([Measures].[Reseller Sales Amount])
+            ),
+        ([Measures].CurrentMember)
+        )
+SELECT
+    {
+        ([Measures].[Reseller Sales Amount]),
+        ([Measures].[Reseller Transaction Count]),
+        ([Measures].[Reseller Order Count])
+    } ON COLUMNS,
+    TopCount(
+        [Product].[Subcategory].[Subcategory].Members,
+        5,
+        ([Measures].[Reseller Sales Amount])
+        ) +
+        {
+            ([Product].[Subcategory].[Top 5]),
+            ([Product].[Subcategory].[All Products])
+        } ON ROWS
+FROM [Step-by-Step]
+;
+
+
+// evarage a set of values
+WITH 
+MEMBER [Date].[Calendar].[CY 2003 Quarterly Avg Reseller Sales] AS
+    Avg(
+        {
+            [Date].[Calendar].[Calendar Quarter].[Q1 CY 2003]:
+            [Date].[Calendar].[Calendar Quarter].[Q4 CY 2003]
+            },
+        [Measures].CurrentMember
+        )
+MEMBER [Date].[Calendar].[CY 2003 Monthly Avg Reseller Sales] AS
+    Avg(
+        {
+            [Date].[Calendar].[Month].[January 2003]:
+            [Date].[Calendar].[Month].[December 2003]
+            },
+        [Measures].CurrentMember
+        )
+SELECT
+    {([Measures].[Reseller Sales Amount])} ON COLUMNS,
+    {
+        ([Date].[Calendar].[CY 2003 Monthly Avg Reseller Sales]),
+        ([Date].[Calendar].[CY 2003 Quarterly Avg Reseller Sales])
+        } +
+    Hierarchize(
+        {
+            [Date].[Calendar].[Month].[January 2003]:
+            [Date].[Calendar].[Month].[December 2003]
+            } +
+        {
+            [Date].[Calendar].[Calendar Quarter].[Q1 CY 2003]:
+            [Date].[Calendar].[Calendar Quarter].[Q4 CY 2003]
+            }
+        ) ON ROWS
+FROM [Step-by-Step]
+;
+
+
+// sample with count
+WITH
+MEMBER [Measures].[Products] AS
+    Count(
+        EXISTING {[Product].[Product].[Product].Members}
+        )
+MEMBER [Measures].[Reseller Products] AS
+    Count(
+        Filter(
+            EXISTING {[Product].[Product].[Product].Members},
+            ([Measures].[Reseller Sales Amount]) >= 
+            ([Measures].[Internet Sales Amount])
+            ) * {[Measures].[Reseller Sales Amount]},
+            EXCLUDEEMPTY
+        )
+SELECT
+    {
+        ([Measures].[Products]),
+        ([Measures].[Reseller Products])
+        } ON COLUMNS,
+    {[Product].[Category].Members} ON ROWS
+FROM [Step-by-Step]
+;
+
+// return a members parent member
+WITH
+MEMBER [Measures].[Percent of Parent] AS
+    ([Measures].[Reseller Sales Amount])/
+        (
+            [Product].[Product Categories].CurrentMember.Parent,
+            [Measures].[Reseller Sales Amount]
+            )
+    ,FORMAT="Percent"
+SELECT
+    {
+        ([Measures].[Reseller Sales Amount]),
+        ([Measures].[Percent of Parent])
+        } ON COLUMNS,
+    {[Product].[Product Categories].Members} ON ROWS
+FROM [Step-by-Step]
+;
+
+// return the set of a members siblings including the member itselt
+WITH 
+MEMBER [Measures].[Sibling Rank] AS
+    Rank(
+        [Product].[Product Categories].CurrentMember,
+        [Product].[Product Categories].CurrentMember.Siblings,
+        ([Measures].[Reseller Sales Amount])
+        )
+SELECT
+    {
+        ([Measures].[Reseller Sales Amount]),
+        ([Measures].[Sibling Rank])
+        } ON COLUMNS,
+    {[Product].[Product Categories].Members} ON ROWS
+FROM [Step-by-Step]
+;
+
+
+// return a member ancestor member from a level
+WITH
+MEMBER [Measures].[Percent of Parent] AS
+    IIF(
+        [Product].[Product Categories].CurrentMember.Parent Is Null, 
+        Null,
+        ([Measures].[Reseller Sales Amount])/
+            (
+                [Product].[Product Categories].CurrentMember.Parent,
+                [Measures].[Reseller Sales Amount]
+                )
+        )
+    ,FORMAT="Percent"
+MEMBER [Measures].[Percent of Category] AS
+    ([Measures].[Reseller Sales Amount])/
+        (
+            Ancestor(
+                [Product].[Product Categories].CurrentMember,
+                [Product].[Product Categories].[Category]
+                ),
+            [Measures].[Reseller Sales Amount]
+            )
+    ,FORMAT="Percent"
+SELECT
+    {
+        ([Measures].[Reseller Sales Amount]),
+        ([Measures].[Percent of Parent]),
+        ([Measures].[Percent of Category])
+        } ON COLUMNS,
+    {[Product].[Product Categories].Members} ON ROWS
+FROM [Step-by-Step]
+;
+
+// retrieve the periods-todate for anay speciefied period
+WITH
+MEMBER [Measures].[Year to Date Reseller Sales] AS
+    Aggregate(
+        PeriodsToDate(
+            [Date].[Calendar].[Calendar Year],
+            [Date].[Calendar].CurrentMember
+            ),
+        ([Measures].[Reseller Sales Amount])
+        )
+SELECT
+    {
+        ([Measures].[Reseller Sales Amount]),
+        ([Measures].[Year to Date Reseller Sales])
+        } ON COLUMNS,
+    {[Date].[Calendar].[Month].Members} ON ROWS
+FROM [Step-by-Step]
+;
+
+// retrieve the periods-to-date for a year
+WITH
+MEMBER [Measures].[Year to Date Reseller Sales] AS
+    Aggregate(
+        Ytd([Date].[Calendar].CurrentMember),
+        ([Measures].[Reseller Sales Amount])
+        )
+MEMBER [Measures].[Quarter to Date Reseller Sales] AS
+    Aggregate(
+        Qtd([Date].[Calendar].CurrentMember),
+        ([Measures].[Reseller Sales Amount])
+        )
+SELECT
+    {
+        ([Measures].[Reseller Sales Amount]),
+        ([Measures].[Year to Date Reseller Sales]),
+        ([Measures].[Quarter to Date Reseller Sales])
+        } ON COLUMNS,
+    {[Date].[Calendar].[Month].Members} ON ROWS
+FROM [Step-by-Step]
+;
+
+// retrieve a number of prior periods
+WITH
+MEMBER [Measures].[Three Month Avg Reseller Sales Amount] AS
+    Avg(
+        LastPeriods(
+            3,
+            [Date].[Calendar].CurrentMember
+            ),
+        ([Measures].[Reseller Sales Amount])
+        )
+SELECT
+    {
+        ([Measures].[Reseller Sales Amount]),
+        ([Measures].[Three Month Avg Reseller Sales Amount])
+        } ON COLUMNS,
+    {[Date].[Calendar].[Month].Members} ON ROWS
+FROM [Step-by-Step]
+;
+
+// retrieve a parallel member
+WITH
+MEMBER [Measures].[x] AS
+    ParallelPeriod(
+        [Date].[Calendar].[Calendar Year],
+        1,
+        [Date].[Calendar].CurrentMember
+        ).Name
+SELECT
+    {
+        ([Measures].[Reseller Sales Amount]),
+        ([Measures].[x])
+        } ON COLUMNS,
+    {
+        Descendants(
+            [Date].[Calendar].[Calendar Year].[CY 2003],
+            [Date].[Calendar].[Month],
+            SELF
+            )
+         } ON ROWS
+FROM [Step-by-Step]
+;
+
+// retrieve the opening period or closing period
+WITH
+MEMBER [Measures].[First Child Rate] AS
+    (
+        OpeningPeriod(
+            [Date].[Calendar].[Date],
+            [Date].[Calendar].CurrentMember
+            ),
+             [Measures].[End of Day Rate]
+            )
+       ,FORMAT="Standard"
+SELECT
+    {
+        ([Measures].[First Child Rate]),
+        ([Measures].[End of Day Rate])
+        } ON COLUMNS,
+    {[Date].[Calendar].Members} ON ROWS
+FROM [Step-by-Step]
+WHERE ([Destination Currency].[Destination Currency].[Euro])
+;
+
+
+
+
+
+
+
+
+
+
+
+
+

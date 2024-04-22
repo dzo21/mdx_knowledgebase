@@ -1,0 +1,37 @@
+WITH 
+  SET [Measures.Selection_0_0] AS 
+    {[Measures].[Internet Order Quantity]} 
+  SET [DrillDownLevel.Date.Calendar.Selection_1_0] AS 
+    {DrillDownLevel({[Date].[Calendar].DefaultMember})} 
+  SET [DrillDownLevel.Customer.Customer Geography.Selection_1_1] AS 
+    {
+      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
+    } 
+  SET [DrillDownLevel.Product.Product Categories.Selection_1_2] AS 
+    {
+      DrillDownLevel({[Product].[Product Categories].DefaultMember})
+    } 
+  SET [Date.Calendar.Selection_2_0] AS 
+    {[Date].[Calendar].[All Periods]} 
+  SET [Customer.Customer Geography.Selection_2_1] AS 
+    {[Customer].[Customer Geography].[All Customers]} 
+  SET [Product.Product Categories.Selection_2_2] AS 
+    {[Product].[Product Categories].[All Products]} 
+SELECT 
+  {[Measures.Selection_0_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {
+      {
+          [DrillDownLevel.Date.Calendar.Selection_1_0]*
+          [DrillDownLevel.Customer.Customer Geography.Selection_1_1]*
+          [DrillDownLevel.Product.Product Categories.Selection_1_2]
+      }
+     ,{
+          [Date.Calendar.Selection_2_0]*
+          [Customer.Customer Geography.Selection_2_1]*
+          [Product.Product Categories.Selection_2_2]
+      }
+    }
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM [Adventure Works];

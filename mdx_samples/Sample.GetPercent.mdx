@@ -1,0 +1,20 @@
+WITH
+MEMBER [Measures].[Percent of Parent] AS
+    IIF(
+        [Product].[Product Categories].CurrentMember.Parent Is Null, 
+        Null,
+        ([Measures].[Reseller Sales Amount])/
+            (
+                [Product].[Product Categories].CurrentMember.Parent,
+                [Measures].[Reseller Sales Amount]
+                )
+        )
+    ,FORMAT="Percent"
+SELECT
+    {
+        ([Measures].[Reseller Sales Amount]),
+        ([Measures].[Percent of Parent])
+        } ON COLUMNS,
+    {[Product].[Product Categories].Members} ON ROWS
+FROM [Step-by-Step]
+;

@@ -1,0 +1,59 @@
+-- This script demonstrates advanced usage of KPIs in the 'Adventure Works' cube to analyze product categories over fiscal years,
+-- including the creation, querying, and removal of KPIs.
+
+-- Selecting existing KPIs and displaying them with related fiscal years and product categories.
+SELECT
+    CROSSJOIN([Date].[Fiscal].[Fiscal Year].[FY 2003], {KPIValue("Product Gross Profit Margin"), KPIGoal("Product Gross Profit Margin"), KPIStatus("Product Gross Profit Margin")}) ON COLUMNS,
+    [Product].[Product Categories].[Category] ON ROWS
+FROM 
+    [Adventure Works];
+
+-- Formatting KPIs to enhance readability and adding a trend measure.
+WITH 
+    MEMBER [Measures].[Actual] AS KPIValue("Product Gross Profit Margin"), FORMAT_STRING = "Percent",
+    MEMBER [Measures].[Target] AS KPIGoal("Product Gross Profit Margin"), FORMAT_STRING = "Percent",
+    MEMBER [Measures].[Status] AS KPIStatus("Product Gross Profit Margin"),
+    MEMBER [Measures].[Trend] AS KPITrend("Product Gross Profit Margin")
+SELECT
+    CROSSJOIN({[Date].[Fiscal].[Fiscal Year].[FY 2003], [Date].[Fiscal].[Fiscal Year].[FY 2004]}, {[Measures].[Actual], [Measures].[Target], [Measures].[Status], [Measures].[Trend]}) ON COLUMNS,
+    [Product].[Product Categories].[Category] ON ROWS
+FROM 
+    [Adventure Works];
+
+-- Modifying the KPI target and status dynamically based on product categories.
+WITH 
+    MEMBER [Measures].[Actual] AS KPIValue("Product Gross Profit Margin"), FORMAT_STRING = "Percent",
+    MEMBER [Measures].[Target] AS IIF([Product].[Product Categories].CurrentMember IS [Product].[Product Categories].[Accessories], 0.60, KPIGoal("Product Gross Profit Margin")), FORMAT_STRING = "Percent",
+    MEMBER [Measures].[Status] AS IIF([Product].[Product Categories].CurrentMember IS [Product].[Product Categories].[Accessories], CASE WHEN [Measures].[Actual] / [Measures].[Target] >= 0.95 THEN 1 WHEN [Measures].[Actual] / [Measures].[Target] < 0.95 AND [Measures].[Actual] / [Measures].[Target] >= 0.70 THEN 0 ELSE -1 END, KPIStatus("Product Gross Profit Margin"))
+SELECT
+    CROSSJOIN({[Date].[Fiscal].[Fiscal Year].[FY 2003], [Date].[Fiscal].[Fiscal Year].[FY 2004]}, {[Measures].[Actual], [Measures].[Target], [Measures].[Status]}) ON COLUMNS,
+    [Product].[Product Categories].[Category] ON ROWS
+FROM 
+    [Adventure Works];
+
+-- Creating a new KPI to monitor Profit Margin with goals varying by category and handling clean up afterwards.
+CREATE MEMBER [Adventure Works].[Measures].[Profit Margin Value] AS [Measures].[Gross Profit Margin];
+CREATE KPI [Adventure Works].[Profit Margin] AS [Measures].[Profit Margin Value],
+    GOAL = CASE
+        WHEN [Product].[Category].CurrentMember IS [Product].[Category].[Accessories] THEN 0.40
+        WHEN [Product].[Category].CurrentMember IS [Product].[Category].[Bikes] THEN 0.12
+        WHEN [Product].[Category].CurrentMember IS [Product].[Category].[Clothing] THEN 0.20
+        WHEN [Product].[Category].CurrentMember IS [Product].[Category].[Components] THEN 0.10
+        ELSE 0.12
+    END,
+    STATUS = CASE
+        WHEN [Measures].[Profit Margin Value] / KPIGoal("Profit Margin") >= 0.90 THEN 1
+        WHEN [Measures].[Profit Margin Value] / KPIGoal("Profit Margin") < 0.90 AND [Measures].[Profit Margin Value] / KPIGoal("Profit Margin") >= 0.80 THEN 0
+        ELSE -1
+    END;
+
+-- Querying the newly created KPI to analyze performance across categories and fiscal years.
+SELECT
+    CROSSJOIN({[Date].[Fiscal].[Fiscal Year].[FY 2003], [Date].[Fiscal].[Fiscal Year].[FY 2004]}, {KPIValue("Profit Margin"), KPIGoal("Profit Margin"), KPIStatus("Profit Margin")}) ON COLUMNS,
+    [Product].[Product Categories].[Category] ON ROWS
+FROM 
+    [Adventure Works];
+
+-- Dropping the KPI and measure to maintain cube hygiene.
+DROP KPI [Adventure Works].[Profit Margin];
+DROP MEMBER [Adventure Works].[Measures].[Profit Margin Value];

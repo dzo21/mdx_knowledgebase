@@ -1,0 +1,77 @@
+-- This script demonstrates advanced MDX functionalities such as handling distinct members,
+-- generating sets, and managing time series calculations within the "Adventure Works" cube.
+
+-- Handling duplicates in MDX queries to ensure distinct selection.
+SELECT DISTINCT 
+    {[Geography].[Country].[Australia], [Geography].[Country].[Australia]} 
+ON COLUMNS
+FROM [Adventure Works];
+
+-- Utilizing MDX item function to return specific elements from a set.
+WITH 
+SET [SelectedYears] AS [Date].[Calendar].[Calendar Year].MEMBERS
+SELECT 
+    [SelectedYears].ITEM(2) ON COLUMNS
+FROM [Adventure Works];
+
+-- Demonstrating the use of the Generate function to create sets based on existing categories.
+WITH 
+SET [BikesAndClothing] AS {[Product].[Product Categories].[Category].[Bikes], [Product].[Product Categories].[Category].[Clothing]}
+SET [TwoFamilies] AS 
+    GENERATE([BikesAndClothing], [Product].[Product Categories].CurrentMember.Children)
+SELECT 
+    [TwoFamilies] ON COLUMNS
+FROM [Adventure Works];
+
+-- Calculating rankings of cities by their Internet Sales Amount.
+WITH 
+SET [CountriesAndCities] AS 
+    CROSSJOIN([Customer].[Country].[Country], FILTER([Customer].[City].[City], [Measures].[Internet Sales Amount] > 0))
+MEMBER [Measures].[Ranking] AS 
+    RANK([Customer].[City].CurrentMember, [Customer].[City].CurrentMember.Siblings, [Measures].[Internet Sales Amount])
+SELECT 
+    {[Measures].[Internet Sales Amount], [Measures].[Ranking]} ON COLUMNS,
+    ORDER([CountriesAndCities], [Measures].[Internet Sales Amount], BDESC) ON ROWS
+FROM [Adventure Works];
+
+-- Identifying the top performing cities within specific years and combining data across years.
+WITH 
+SET [BestCitiesInCY2003] AS 
+    ORDER(TOPCOUNT([Customer].[Customer Geography].[City], 10, ([Measures].[Internet Sales Amount], [Date].[Calendar].[Calendar Year].[CY 2003])), [Measures].[Internet Sales Amount], BDESC)
+SET [BestCitiesInCY2004] AS 
+    ORDER(TOPCOUNT([Customer].[Customer Geography].[City], 10, ([Measures].[Internet Sales Amount], [Date].[Calendar].[Calendar Year].[CY 2004])), [Measures].[Internet Sales Amount], BDESC)
+SET [BestCitiesInCY2003To2004] AS 
+    UNION([BestCitiesInCY2003], [BestCitiesInCY2004])
+SELECT 
+    [Measures].[Internet Sales Amount] ON COLUMNS,
+    [BestCitiesInCY2003To2004] ON ROWS
+FROM [Adventure Works]
+WHERE {[Date].[Calendar].[Calendar Year].[CY 2003], [Date].[Calendar].[Calendar Year].[CY 2004]};
+
+-- Applying head function to filter the first two fiscal quarters.
+SELECT 
+    HEAD([Date].[Fiscal].[Fiscal Quarter], 2) ON COLUMNS
+FROM [Adventure Works];
+
+-- Using visual totals to manage aggregated data visibility.
+SELECT 
+    VISUALTOTALS({[Date].[Calendar], [Date].[Calendar].[Calendar Year].[CY 2002]:[Date].[Calendar].[Calendar Year].[CY 2004]}) ON COLUMNS
+FROM [Adventure Works];
+
+-- Creating a dynamic set with MDX to facilitate focused analysis on specific geography.
+WITH 
+SET [Europe] AS 
+    {[Customer].[Customer Geography].[Country].[France], [Customer].[Customer Geography].[Country].[Germany], [Customer].[Customer Geography].[Country].[United Kingdom]}
+SELECT 
+    [Europe] ON COLUMNS
+FROM [Adventure Works]
+WHERE [Measures].[Internet Sales Amount];
+
+-- Leveraging aggregate functions to provide cumulative and comparative sales analysis across fiscal years.
+WITH 
+MEMBER [Measures].[YearlyChange] AS 
+    ([Measures].[Reseller Sales Amount], [Date].[Fiscal].CurrentMember) - ([Measures].[Reseller Sales Amount], PARALLELPERIOD([Date].[Fiscal].[Fiscal Year], 1, [Date].[Fiscal].CurrentMember))
+SELECT 
+    {[Measures].[Reseller Sales Amount], [Measures].[YearlyChange]} ON COLUMNS,
+    [Date].[Fiscal].[Fiscal Year].MEMBERS ON ROWS
+FROM [Adventure Works];

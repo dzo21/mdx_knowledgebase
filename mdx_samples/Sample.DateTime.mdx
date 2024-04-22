@@ -1,0 +1,114 @@
+This Post will help you to Find the Payment Due of Vendors.
+Here the Idea is Find the Last Transaction date and Last Date of Seleted Period Then subtract between this.
+This is done using -[Measure].[Day Count] Row Count of DimDate.Date column
+And i explained some different behaviour of this.
+
+1. Find LastDate Over Period(Selected Time Period)
+This Measure is Derived from Date Dimension Table.
+Ex. Select Year 2009 in filter and select some Months in column then
+Result is :
+January : February :March
+31/1/2009 ;28/2/2009 ;31/3/2009
+
+TAIL(EXISTING [Date].[Date].[Date].MEMBERS).ITEM(0).Name
+
+2. Last Transaction Date Over Period
+
+Ex: Selected Month is Jan then
+(Date >= Jan - 1 - 09 and Date <= Jan - 31 -09)
+
+TAIL(NonEmpty(EXISTING [Date].[Date].MEMBERS, [Measures].[Amount])).ITEM(0).NAME
+
+3. Last Transaction Date From Current Period to Previous Periods
+Ex: Selected Month is Jan then (Date <= Jan - 31 -09)
+Find the Transaction Date Between 
+1. All the Previous Periods : NULL 
+2. Tail Member : TAIL(EXISTING [Date].[Date].[Date].MEMBERS).ITEM(0)
+3. Look up Measure Between this Date and get the Tail Member
+
+TAIL(
+FILTER(
+([Measures].[ECOM Temp]TAIL(EXISTING [Date].[Date].[Date].MEMBERS).ITEM(0))
+, NOT ISEMPTY([Measures].[Amount])
+)
+).ITEM(0).Name
+
+4. Count Payment Due
+Count Date Between Last day of Each Period to Last Transaction Date of Previous Period to the Current Period
+Step 1: 
+First Find the [Measures].[DayCount]
+[Measures].[DayCount] :- Count Rowl Measure from DimDate.Date Column 
+Step2:
+I).From : Last Date of Period (Jan - 31 -09)
+II). To: LastTransactionDate([Measures].[ECOM Temp](all previous Member) and Date <= Jan - 31 -09)
+
+III). Sum of DayCount Between the Period
+
+SUM(
+{ TAIL(EXISTING [Date].[Date].[Date].MEMBERS).ITEM(0)
+:
+TAIL(
+FILTER(
+([Measures].[ECOM Temp]TAIL(EXISTING [Date].[Date].[Date].MEMBERS).ITEM(0))
+, NOT ISEMPTY([Measures].[Amount])
+)
+).ITEM(0)
+}
+,[Measures].[DayCount]
+)
+
+5. Count Payment Due from Last Transaction Date To Last Date of current Period
+Ex: 
+1.From : Last Date of Period (Jan - 31 -09)
+2. To: LastTransactionDate(Date >= Jan - 1 - 09 and Date <= Jan - 31 -09)
+3. Sum of DayCount Between the Period
+
+
+SUM(
+{ TAIL(EXISTING [Date].[Date].[Date].MEMBERS).ITEM(0)
+:
+TAIL(NonEmpty(EXISTING [Date].[Date].MEMBERS
+, [Measures].[Amount])).ITEM(0)
+}
+,[Measures].[DayCount]
+)
+
+
+****************
+Sample Query
+****************
+
+WITH
+MEMBER [Measures].[PaymentDue Previous Period] AS
+SUM(
+{ TAIL(EXISTING [Date].[Date].[Date].MEMBERS).ITEM(0)
+:
+TAIL(
+FILTER(
+([Measures].[ECOM Temp]TAIL(EXISTING [Date].[Date].[Date].MEMBERS).ITEM(0))
+, NOT ISEMPTY([Measures].[Amount])
+)
+).ITEM(0)
+}
+,[Measures].[DayCount]
+)
+MEMBER [Measures].[PaymentDue Over Period] AS
+SUM(
+{ TAIL(EXISTING [Date].[Date].[Date].MEMBERS).ITEM(0)
+:
+TAIL(NonEmpty(EXISTING [Date].[Date].MEMBERS
+, [Measures].[Amount])).ITEM(0)
+}
+,[Measures].[DayCount]
+)
+
+SELECT {[Measures].[PaymentDue Previous Period]
+,[Measures].[PaymentDue Over Period]
+}
+ON ROWS,
+[Date].[Month Name].MEMBERS
+ON COLUMNS
+FROM [Vendor Ledger]
+WHERE ([Date].[Year].&[2008],[Vendor].[Vendor].&[10006])
+
+In this example [Measures].[PaymentDue Over Period] will fit in to real time 

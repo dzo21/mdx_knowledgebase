@@ -1,0 +1,441 @@
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--- top 10 objects on which the SSAS instance has spent more time.mdx
+SELECT TOP 10
+OBJECT_ID,
+OBJECT_CPU_TIME_MS
+FROM $system.DISCOVER_OBJECT_ACTIVITY
+ORDER BY
+OBJECT_CPU_TIME_MS DESC
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--- mdx paging
+WITH 
+  MEMBER [Measures].[-DimBrowseProp Address-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Address"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Birth Date-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Birth Date"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Commute Distance-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Commute Distance"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Date of First Purchase-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Date of First Purchase"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Education-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Education"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Email Address-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Email Address"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Gender-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Gender"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Home Owner-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Home Owner"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Marital Status-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Marital Status"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Number of Cars Owned-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Number of Cars Owned"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Number of Children At Home-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Number of Children At Home"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Occupation-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Occupation"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Phone-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Phone"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Postal Code-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Postal Code"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Total Children-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Total Children"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Yearly Income-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Yearly Income"
+   ,TYPED) 
+SELECT 
+  {
+   [Measures].[-DimBrowseProp Address-]
+   ,[Measures].[-DimBrowseProp Birth Date-]
+   ,[Measures].[-DimBrowseProp Commute Distance-]
+   ,[Measures].[-DimBrowseProp Date of First Purchase-]
+   ,[Measures].[-DimBrowseProp Education-]
+   ,[Measures].[-DimBrowseProp Email Address-]
+   ,[Measures].[-DimBrowseProp Gender-]
+   ,[Measures].[-DimBrowseProp Home Owner-]
+   ,[Measures].[-DimBrowseProp Marital Status-]
+   ,[Measures].[-DimBrowseProp Number of Cars Owned-]
+   ,[Measures].[-DimBrowseProp Number of Children At Home-]
+   ,[Measures].[-DimBrowseProp Occupation-]
+   ,[Measures].[-DimBrowseProp Phone-]
+   ,[Measures].[-DimBrowseProp Postal Code-]
+   ,[Measures].[-DimBrowseProp Total Children-]
+   ,[Measures].[-DimBrowseProp Yearly Income-]
+, [Measures].[Amount]
+, [Measures].[Average Rate]
+, [Measures].[Customer Count]
+, [Measures].[Reseller Sales Amount]
+  } ON 0
+ ,Subset
+  (
+    {[Customer].[Customer].[All Customers].Children} * {[Customer].[Customer Geography].[City].members}
+   ,555, 3
+  ) ON 1
+FROM [Adventure Works]
+CELL PROPERTIES VALUE;
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- is leaf
+WITH 
+  MEMBER [Measures].[ISLEAF] AS 
+    IsLeaf([Customer].[Customer Geography].CurrentMember) 
+SELECT 
+  {[Measures].[ISLEAF]} ON 0
+ ,{[Customer].[Customer Geography].MEMBERS} ON 1
+FROM [Adventure Works];
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--- currentmember samples
+WITH 
+  //Returns the name of the currentmember on the Calendar hierarchy
+  MEMBER MEASURES.[CurrentMemberDemo] AS 
+    [Date].[Calendar].CurrentMember.Name 
+  //Returns the name of the parent of the currentmember on the Calendar hierarchy
+  MEMBER MEASURES.[ParentDemo] AS 
+    [Date].[Calendar].CurrentMember.Parent.Name 
+  //Returns the name of the ancestor of the currentmember on the Calendar hierarchy at the Year level
+  MEMBER MEASURES.[AncestorDemo] AS 
+    Ancestor
+    (
+      [Date].[Calendar].CurrentMember
+     ,[Date].[Calendar].[Calendar Year]
+    ).Name 
+  //Returns the name of the member before the currentmember on the Calendar hierarchy
+  MEMBER MEASURES.[PrevMemberDemo] AS 
+    [Date].[Calendar].CurrentMember.PrevMember.Name 
+SELECT 
+  {
+    MEASURES.[CurrentMemberDemo]
+   ,MEASURES.[ParentDemo]
+   ,MEASURES.[AncestorDemo]
+   ,MEASURES.[PrevMemberDemo]
+  } ON 0
+ ,[Date].[Calendar].MEMBERS ON 1
+FROM [Adventure Works];
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--- visual totals sample
+SELECT VisualTotals
+   ({[Date].[Calendar].[Calendar Quarter].&[2007]&[3]
+      ,[Date].[Calendar].[Month].&[2007]&[7]}) ON 0
+FROM [Adventure Works]
+
+
+SELECT
+   VisualTotals
+   ({[Product].[Category].[All Products]
+      ,[Product].[Category].[Accessories]
+      ,[Product].[Category].[Clothing]
+	  ,[Product].[Category].[Components]
+	  ,[Product].[Category].[Bikes]}
+   ) ON Columns
+, [Measures].[Internet Sales Amount] ON Rows
+FROM [Adventure Works]
+//SELF
+// Returns only descendant members from the specified level or at the specified distance. The function includes the specified member, if the specified level is the level of the specified member.
+// 
+//AFTER
+// Returns descendant members from all levels subordinate to the specified level or distance.
+// 
+//BEFORE
+// Returns descendant members from all levels between the specified member and the specified level, or at the specified distance. It includes the specified member, but does not include members from the specified level or distance.
+// 
+//BEFORE_AND_AFTER
+// Returns descendant members from all levels subordinate to the level of the specified member. It includes the specified member, but does not include members from the specified level or at the specified distance.
+// 
+//SELF_AND_AFTER
+// Returns descendant members from the specified level or at the specified distance and all levels subordinate to the specified level, or at the specified distance.
+// 
+//SELF_AND_BEFORE
+// Returns descendant members from the specified level or at the specified distance, and from all levels between the specified member and the specified level, or at the specified distance, including the specified member.
+// 
+//SELF_BEFORE_AFTER
+// Returns descendant members from all levels subordinate to the level of the specified member, and includes the specified member.
+// 
+//LEAVES
+// Returns leaf descendant members between the specified member and the specified level, or at the specified distance.
+//
+//Descendants
+//
+//( 
+//
+//Member_Expression ,
+//
+//Level_Expression, 
+//
+//SELF
+//
+//)
+
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+// Beispiel Statement für OLE DB
+WITH  
+MEMBER [-CWCAPT-] AS '[Customer].[Customer].currentmember.MEMBER_CAPTION' 
+MEMBER [-CWLEVEL-] AS '[Customer].[Customer].currentmember.LEVEL_NUMBER' 
+MEMBER [-MEMBER_NAME-] AS '[Customer].[Customer].currentmember.MEMBER_NAME' 
+MEMBER [-CHILDREN_CARDINALITY-] AS '[Customer].[Customer].currentmember.CHILDREN_CARDINALITY' 
+MEMBER [-MEMBER_TYPE-] AS '[Customer].[Customer].currentmember.MEMBER_TYPE' 
+MEMBER [-LEVEL_UNIQUE_NAME-] AS '[Customer].[Customer].currentmember.LEVEL_UNIQUE_NAME' 
+MEMBER [-CWLEAF-] AS 'IsLeaf([Customer].[Customer].currentmember)' 
+SELECT { [-CWCAPT-],[-CWLEVEL-],[-MEMBER_NAME-],[-CHILDREN_CARDINALITY-],[-MEMBER_TYPE-],[-LEVEL_UNIQUE_NAME-],[-CWLEAF-] } ON 0, 
+ arbeitet nur auf der untersten Ebene
+--{  FILTER ([Customer].[Customer].[Germany].Children,  ( VBAMDX.InStr([-CWCAPT-], "12")  > 0 )  ) } ON 1 
+ mit work with SELF
+--{  FILTER (DESCENDANTS([Customer].[Customer].[Germany].Children,,SELF),  ( VBAMDX.InStr([-CWCAPT-], "12")  > 0 )  ) } ON 1 
+ leere Menge
+--{  FILTER (DESCENDANTS([Customer].[Customer].[Germany].Children,,AFTER),  ( VBAMDX.InStr([-CWCAPT-], "12")  > 0 )  ) } ON 1 
+ leere Menge
+--{  FILTER (DESCENDANTS([Customer].[Customer].[Germany].Children,,BEFORE_AND_AFTER),  ( VBAMDX.InStr([-CWCAPT-], "12")  > 0 )  ) } ON 1 
+ leere Menge
+--{  FILTER (DESCENDANTS([Customer].[Customer].Children,,SELF),  ( VBAMDX.InStr([-CWCAPT-], "30012")  > 0 )  ) } ON 1 
+ 20101111 solution
+--{  FILTER (DESCENDANTS([Customer].[Customer].[Germany].Children,,SELF_AND_AFTER),  ( VBAMDX.InStr([-CWCAPT-], "30012")  > 0 )  ) } ON 1 
+ mit AND Verkn. (fault)
+-- {  FILTER ((DESCENDANTS([Customer].[Customer].[Germany].Children,,SELF_AND_AFTER)) AND 
+--			(DESCENDANTS([Customer].[Customer].[Italy].Children,,SELF_AND_AFTER)),  ( VBAMDX.InStr([-CWCAPT-], "30012")  > 0 )  ) } ON 1 
+ mit AND Verknüpft (fault)
+-- {  FILTER (DESCENDANTS(([Customer].[Customer].[Germany].Children) AND ([Customer].[Customer].[Italy].Children),,SELF_AND_AFTER) [Customer].[Customer].[Italy].Children,,SELF_AND_AFTER),  ( VBAMDX.InStr([-CWCAPT-], "30012")  > 0 )  ) } ON 1 
+ 20101111 solution
+{  FILTER (DESCENDANTS([Customer].[Customer].[Germany].Children,,SELF_AND_AFTER),  ( VBAMDX.InStr([-CWCAPT-], "12")  > 0 )  ) } ON 1 
+FROM [PurchaseSales] CELL PROPERTIES VALUE
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+//Versuche am 2010112
+WITH  MEMBER [-CWCAPT-] AS '[Customer].[Customer].currentmember.MEMBER_CAPTION' 
+MEMBER [-CWLEVEL-] AS '[Customer].[Customer].currentmember.LEVEL_NUMBER' 
+MEMBER [-MEMBER_NAME-] AS '[Customer].[Customer].currentmember.MEMBER_NAME' 
+MEMBER [-CHILDREN_CARDINALITY-] AS '[Customer].[Customer].currentmember.CHILDREN_CARDINALITY' 
+MEMBER [-MEMBER_TYPE-] AS '[Customer].[Customer].currentmember.MEMBER_TYPE' 
+MEMBER [-LEVEL_UNIQUE_NAME-] AS '[Customer].[Customer].currentmember.LEVEL_UNIQUE_NAME' 
+MEMBER [-CWLEAF-] AS 'IsLeaf([Customer].[Customer].currentmember)' 
+SELECT { [-CWCAPT-],[-CWLEVEL-],[-MEMBER_NAME-],[-CHILDREN_CARDINALITY-],[-MEMBER_TYPE-],[-LEVEL_UNIQUE_NAME-],[-CWLEAF-] } ON 0, 
+{  FILTER (DESCENDANTS([Customer].[Customer].Children,,SELF_AND_AFTER),  ( [-CWCAPT-] = "11249" )  ) } ON 1 
+FROM [PurchaseSales] CELL PROPERTIES VALUE
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+// Beispiel Statement für OLE DB
+WITH  
+MEMBER [-CWCAPT-] AS '[Customer].[Customer].currentmember.MEMBER_CAPTION' 
+MEMBER [-CWLEVEL-] AS '[Customer].[Customer].currentmember.LEVEL_NUMBER' 
+MEMBER [-MEMBER_NAME-] AS '[Customer].[Customer].currentmember.MEMBER_NAME' 
+MEMBER [-CHILDREN_CARDINALITY-] AS '[Customer].[Customer].currentmember.CHILDREN_CARDINALITY' 
+MEMBER [-MEMBER_TYPE-] AS '[Customer].[Customer].currentmember.MEMBER_TYPE' 
+MEMBER [-LEVEL_UNIQUE_NAME-] AS '[Customer].[Customer].currentmember.LEVEL_UNIQUE_NAME' 
+MEMBER [-CWLEAF-] AS 'IsLeaf([Customer].[Customer].currentmember)' 
+SELECT { [-CWCAPT-],[-CWLEVEL-],[-MEMBER_NAME-],[-CHILDREN_CARDINALITY-],[-MEMBER_TYPE-],[-LEVEL_UNIQUE_NAME-],[-CWLEAF-] } ON 0, 
+{  FILTER (DESCENDANTS([Customer].[Customer].Children,,SELF),  ( VBAMDX.InStr([-CWCAPT-], "Germany")  > 0 )  ) } ON 1 
+FROM [PurchaseSales] CELL PROPERTIES VALUE
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+// 20101122 MDX Capture
+WITH  MEMBER [-CWCAPT-] AS '[Customer].[Customer].currentmember.MEMBER_CAPTION' MEMBER [-CWLEVEL-] AS '[Customer].[Customer].currentmember.LEVEL_NUMBER' MEMBER [-MEMBER_NAME-] AS '[Customer].[Customer].currentmember.MEMBER_NAME' MEMBER [-CHILDREN_CARDINALITY-] AS '[Customer].[Customer].currentmember.CHILDREN_CARDINALITY' MEMBER [-MEMBER_TYPE-] AS '[Customer].[Customer].currentmember.MEMBER_TYPE' MEMBER [-LEVEL_UNIQUE_NAME-] AS '[Customer].[Customer].currentmember.LEVEL_UNIQUE_NAME' MEMBER [-CWLEAF-] AS 'IsLeaf([Customer].[Customer].currentmember)' SELECT { [-CWCAPT-],[-CWLEVEL-],[-MEMBER_NAME-],[-CHILDREN_CARDINALITY-],[-MEMBER_TYPE-],[-LEVEL_UNIQUE_NAME-],[-CWLEAF-] } ON 0, {  FILTER (DESCENDANTS([Customer].[Customer].[Germany].Children,,SELF_AND_AFTER),  ( [-CWCAPT-] = "11333" )  ) } ON 1 FROM [PurchaseSales] CELL PROPERTIES VALUE
+// get percent sample
+WITH
+MEMBER [Measures].[Percent of Parent] AS
+    IIF(
+        [Product].[Product Categories].CurrentMember.Parent Is Null, 
+        Null,
+        ([Measures].[Reseller Sales Amount])/
+            (
+                [Product].[Product Categories].CurrentMember.Parent,
+                [Measures].[Reseller Sales Amount]
+                )
+        )
+    ,FORMAT="Percent"
+SELECT
+    {
+        ([Measures].[Reseller Sales Amount]),
+        ([Measures].[Percent of Parent])
+        } ON COLUMNS,
+    {[Product].[Product Categories].Members} ON ROWS
+FROM [Step-by-Step]
+;
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+// MDX Basic Set Operations
+// Union
+SELECT 
+Union({[Renton],[Redmond]},{[Edmonds]}) ON COLUMNS,
+{[Measures].[Store Sales],[Measures].[Store Cost],[Measures].[Unit Sales]} ON ROWS
+FROM [Warehouse and Sales]
+// or with + operator
+SELECT 
+Union({[Renton],[Redmond]}+{[Edmonds]}) ON COLUMNS,
+{[Measures].[Store Sales],[Measures].[Store Cost],[Measures].[Unit Sales]} ON ROWS
+FROM [Warehouse and Sales]
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+//Null and Empty Cells
+SELECT
+[Customer].[Occupation].[Occupation].Members ON COLUMNS,
+[Store].[Stores].[Store Country].Members ON ROWS
+FROM
+[Warehouse and Sales]
+WHERE
+([Measures].[Store Sales], [Time].[Time].[Year].[1997])
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+// with NON EMPTY operator
+SELECT
+[Customer].[Occupation].[Occupation].Members ON COLUMNS,
+NON EMPTY [Store].[Stores].[Store Country].Members ON ROWS
+FROM
+[Warehouse and Sales]
+WHERE
+([Measures].[Store Sales], [Time].[Time].[Year].[1997])
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+// Subcube in WHERE clause
+SELECT 
+  {
+    [Warehouse].[Warehouses].[Country].&[Canada]
+   ,[Warehouse].[Warehouses].[Country].&[Mexico]
+   ,[Warehouse].[Warehouses].[Country].&[USA]
+  } ON COLUMNS
+FROM [Warehouse and Sales]
+WHERE 
+  {
+      {
+        [Product].[Products].[Product Family].[Drink]
+       ,[Product].[Products].[Product Family].[Food]
+      }
+    * 
+      {
+        [Time].[Time].[Year].[1997]
+       ,[Time].[Time].[Year].[1998]
+      }
+  };
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+//CREATE SUBCUBE
+CREATE SUBCUBE [Warehouse and Sales]
+AS SELECT
+{[Store].[Stores].[Store Country].[USA]} ON COLUMNS,
+{[Time].[Time].[Year].[1998]} ON ROWS
+FROM [Warehouse and Sales]
+DROP SUBCUBE
+DROP SUBCUBE [Warehouse and Sales]
+
+// to create an calculatet mmember
+CREATE MEMBER
+DROP MEMBER
+
+// the root function evaluates to a subcube that contains a cell o ra group of cells on the top of the cube
+ ROOT([Customer])
+
+// the leaves function return a subcube that contains cells associated wtith leaf members of the specified dimension or with leaf members of all the dimensions
+Leaves[]
+
+// CALCULATE
+Scope(leaves(time),leaves(currency),measures.[store sales]);
+	this = measures.[store sales]*[Measures].[Rates];
+End Scope;
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+// Sample of CREATE SET
+CREATE SET [Warehouse and Sales].TopCustomers AS
+'TopCount([Customer].[Customer].[Customer].MEMBERS, 5, [Measures].[Sales Count])'
+ now select
+SELECT TopCustomers ON COLUMNS
+FROM [Warehouse and Sales] WHERE
+([Time].[Time].[Year].[1997],[Measures].[Sales Count])
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+// Sample of dyn set
+CREATE DYNAMIC SET [Warehouse and Sales].FilterSet AS
+Filter([Customer].[Customer].[Customer].members, (Time.Time.CurrentMember,[Measures].[Sales Count]) > 10)
+ Select
+WITH MEMBER Measures.x AS 'COUNT(FilterSet)'
+SELECT Measures.x ON COLUMNS, [Time].[Time].[Month] ON ROWS
+FROM [Warehouse and Sales]
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+// semi addative Measure
+// in this sample aggrigate function ist LastNonEmpty
+// ok
+SELECT
+DESCENDANTS([Time].[Time].[Year].[1997],[Time].[Time].[Date],BEFORE_AND_AFTER) ON COLUMNS,
+[Product].[Products].[Product Subcategory].[Oysters] ON ROWS
+FROM [Warehouse and Sales]
+WHERE [Measures].[Units]
+// in this sample aggrigate function ist Sum
+// false
+SELECT
+DESCENDANTS([Time].[Time].[Year].[1997],[Time].[Time].[Date],BEFORE_AND_AFTER) ON COLUMNS,
+[Product].[Products].[Product Subcategory].[Oysters] ON ROWS
+FROM [Warehouse and Sales]
+WHERE [Measures].[Units - sum]
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+// get meta data of members of multiple dimensions
+select [PARENT_UNIQUE_NAME]
+	  ,[LEVEL_UNIQUE_NAME]
+	  ,[LEVEL_NUMBER]
+	  ,[MEMBER_UNIQUE_NAME]
+	  ,[MEMBER_CAPTION]
+	  ,[CHILDREN_CARDINALITY] 
+	  from $SYSTEM.MDSCHEMA_MEMBERS 
+	  where [CUBE_NAME] = '$Account'
+		or	[CUBE_NAME] = '$Customer'
+		or	[CUBE_NAME] = '$Date'
+		or	[CUBE_NAME] = '$Department'
+		or	[CUBE_NAME] = '$Destination Currency'
+		or	[CUBE_NAME] = '$Employee'
+		or	[CUBE_NAME] = '$Geography'
+		or	[CUBE_NAME] = '$Internet Sales Order Details'
+		or	[CUBE_NAME] = '$Product'

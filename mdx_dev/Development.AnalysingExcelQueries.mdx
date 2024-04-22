@@ -1,0 +1,32 @@
+-- Refactors and documents an MDX query for analyzing product hierarchies and sales performance with conditional formatting in Adventure Works cube.
+
+-- The query below selects children of a specific product and displays properties about these product categories.
+WITH 
+-- Add calculated members for specific product children
+MEMBER [Measures].[ProductChildren] AS AddCalculatedMembers({[Product].[Product Categories].[Product].&[225].Children})
+SELECT 
+  [Measures].[ProductChildren] ON COLUMNS
+FROM [Adventure Works]
+CELL PROPERTIES CELL_ORDINAL;
+
+-- The query performs a drilldown on specified product subcategories and retrieves extensive attribute data for analysis.
+WITH 
+SET [BikesAndClothing] AS {[Product].[Product Categories].[Category].[Bikes], [Product].[Product Categories].[Category].[Clothing]}
+SET [TwoFamilies] AS Generate([BikesAndClothing], [Product].[Product Categories].CurrentMember.Children)
+SELECT 
+  [TwoFamilies] ON COLUMNS
+FROM [Adventure Works]
+-- Selecting Internet Sales Amount for dimension properties extraction.
+WHERE ([Measures].[Internet Sales Amount]);
+
+-- This query demonstrates how to dynamically navigate product hierarchies and return detailed properties of products under specific conditions.
+SELECT NON EMPTY 
+Hierarchize(DrilldownMember({{DrilldownLevel({[Product].[Product Categories].[All Products]}, INCLUDE_CALC_MEMBERS)}}, {[Product].[Product Categories].[Subcategory].&[2]}, INCLUDE_CALC_MEMBERS))
+DIMENSION PROPERTIES PARENT_UNIQUE_NAME, HIERARCHY_UNIQUE_NAME ON COLUMNS
+FROM (SELECT ([Product].[Product Categories].[Product].&[373], [Product].[Product Categories].[Product].&[225]) ON COLUMNS
+      FROM (SELECT ([Customer].[Customer Geography].[Customer].&[17799], [Customer].[Customer Geography].[Customer].&[23218], [Customer].[Customer Geography].[Customer].&[25528]) ON COLUMNS
+            FROM [Adventure Works]))
+WHERE ([Measures].[Internet Sales Amount])
+CELL PROPERTIES VALUE, FORMAT_STRING, LANGUAGE, BACK_COLOR, FORE_COLOR, FONT_FLAGS;
+
+-- This query explores using MDX functions for drilling down and extracting specific dimensional data while incorporating calculated members for enhanced analysis.

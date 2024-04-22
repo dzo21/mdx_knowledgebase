@@ -1,0 +1,61 @@
+WITH 
+  // dummies
+  MEMBER [Product].[Product Categories].[Dummy] AS 
+    [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Calendar].[Dummy] AS 
+    [Date].[Calendar].DefaultMember 
+  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS 
+    [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
+    [Date].[Calendar].DefaultMember 
+  MEMBER [Measures].[Dummy] AS 
+    [Measures].DefaultMember 
+  MEMBER [Measures].[EmptyRangeDummy] AS 
+    [Measures].DefaultMember 
+  // selections
+  SET [Product.Product Categories.Selection_0_0] AS 
+    {
+      {[Product].[Product Categories].[Subcategory].&[31]}
+     ,{[Product].[Product Categories].[Subcategory].&[23]}
+    } 
+  SET [Product.Product Categories.Selection_1_0] AS 
+    {{[Product].[Product Categories].[Subcategory].MEMBERS}} 
+  SET [Date.Calendar.Selection_1_1] AS 
+    {{[Date].[Calendar].[Calendar Year].&[2008]}} 
+  SET [Date.Calendar.Selection_2_0] AS 
+    {{[Date].[Calendar].[Calendar Year].MEMBERS}} 
+  SET [Measures.Selection_3_0] AS 
+    {{[Measures].[Reseller Sales Amount], [Measures].[Internet Tax Amount], [Measures].[Internet Order Quantity]}} 
+SELECT 
+  NON EMPTY {[Measures.Selection_3_0]} ON 0
+ ,NON EMPTY  {
+      {[Product.Product Categories.Selection_0_0]}
+    * 
+      {[Date].[Calendar].[Dummy]}
+   ,
+      {[Product.Product Categories.Selection_1_0]}
+    * 
+      {[Date.Calendar.Selection_1_1]}
+   ,
+      {[Product].[Product Categories].[Dummy]}
+    * 
+      {[Date.Calendar.Selection_2_0]}
+  } ON 1
+FROM 
+(
+  SELECT 
+    {
+      [Reseller].[Reseller Bank].[Bank Name].&[International Security]
+     ,[Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve]
+     ,[Reseller].[Reseller Bank].[Bank Name].&[United Security]
+    } ON 0
+  FROM 
+  (
+    SELECT 
+      {
+        [Customer].[Customer Geography].[Country].&[Canada]
+       ,[Customer].[Customer Geography].[Country].&[Germany]
+      } ON 0
+    FROM [Adventure Works]
+  )
+);

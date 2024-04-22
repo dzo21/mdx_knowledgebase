@@ -1,0 +1,162 @@
+WITH 
+  // Creating dummy members for default selection in each dimension
+  MEMBER [Product].[Product Categories].[Dummy] AS 
+    [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Calendar].[Dummy] AS 
+    [Date].[Calendar].DefaultMember 
+  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS 
+    [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
+    [Date].[Calendar].DefaultMember 
+  MEMBER [Measures].[Dummy] AS 
+    [Measures].DefaultMember 
+  MEMBER [Measures].[EmptyRangeDummy] AS 
+    [Measures].DefaultMember 
+
+  // Defining sets for subcategories
+  SET [Product.Product Categories.Selection_0_0_0] AS 
+    {{[Product].[Product Categories].[Subcategory].&[31]}} 
+  SET [Product.Product Categories.Selection_0_0_1] AS 
+    {{[Product].[Product Categories].[Subcategory].&[23]}} 
+  SET [Product.Product Categories.Selection_1_0_0] AS 
+    {{[Product].[Product Categories].[Subcategory].MEMBERS}} 
+
+  // Defining sets for years
+  SET [Date.Calendar.Selection_1_1_0] AS 
+    {{[Date].[Calendar].[Calendar Year].&[2008]}} 
+  SET [Date.Calendar.Selection_2_0_0] AS 
+    {{[Date].[Calendar].[Calendar Year].MEMBERS}} 
+
+  // Defining set for measures
+  SET [Measures.Selection_3_0_0] AS 
+    {{[Measures].[Reseller Sales Amount]}} 
+
+  // Creating non-empty sets combining dimensions and measures
+  SET [Product.Product Categories.NonEmptySelection_0_0_0] AS 
+    Extract(
+      NonEmpty(
+        {{[Product].[Product Categories].[Subcategory].&[31]}}
+        * [Measures.Selection_3_0_0]
+      ), [Product].[Product Categories]
+    ) 
+  SET [Product.Product Categories.NonEmptySelection_0_0_1] AS 
+    Extract(
+      NonEmpty(
+        {{[Product].[Product Categories].[Subcategory].&[23]}}
+        * [Measures.Selection_3_0_0]
+      ), [Product].[Product Categories]
+    ) 
+  SET [Product.Product Categories.NonEmptySelection_1_0_0] AS 
+    Extract(
+      NonEmpty(
+        [Product.Product Categories.Selection_1_0_0]*
+        [Date.Calendar.Selection_1_1_0]*
+        [Measures.Selection_3_0_0]
+      ), [Product].[Product Categories]
+    ) 
+  SET [Date.Calendar.NonEmptySelection_1_1_0] AS 
+    Extract(
+      NonEmpty(
+        {{[Date].[Calendar].[Calendar Year].&[2008]}}
+        * [Measures.Selection_3_0_0]
+      ), [Date].[Calendar]
+    ) 
+  SET [Date.Calendar.NonEmptySelection_2_0_0] AS 
+    Extract(
+      NonEmpty(
+        {{[Date].[Calendar].[Calendar Year].MEMBERS}}
+        * [Measures.Selection_3_0_0]
+      ), [Date].[Calendar]
+    ) 
+
+  // Calculating counts of members and non-empty members in the sets
+  MEMBER [Product].[Product Categories].[0_0_0.MemberCount] AS 
+    {[Product.Product Categories.Selection_0_0_0]}.Count 
+  MEMBER [Product].[Product Categories].[0_0_0.NonEmptyMemberCount] AS 
+    {[Product.Product Categories.NonEmptySelection_0_0_0]}.Count 
+  MEMBER [Product].[Product Categories].[0_0_1.MemberCount] AS 
+    {[Product.Product Categories.Selection_0_0_1]}.Count 
+  MEMBER [Product].[Product Categories].[0_0_1.NonEmptyMemberCount] AS 
+    {[Product.Product Categories.NonEmptySelection_0_0_1]}.Count 
+  MEMBER [Product].[Product Categories].[1_0_0.MemberCount] AS 
+    {{[Product.Product Categories.Selection_1_0_0]}}.Count 
+  MEMBER [Product].[Product Categories].[1_0_0.NonEmptyMemberCount] AS 
+    {{[Product.Product Categories.NonEmptySelection_1_0_0]}}.Count 
+  MEMBER [Date].[Calendar].[1_1_0.MemberCount] AS 
+    {{[Date.Calendar.Selection_1_1_0]}}.Count 
+  MEMBER [Date].[Calendar].[1_1_0.NonEmptyMemberCount] AS 
+    {{[Date.Calendar.NonEmptySelection_1_1_0]}}.Count 
+  MEMBER [Date].[Calendar].[2_0_0.MemberCount] AS 
+    {{[Date.Calendar.Selection_2_0_0]}}.Count 
+  MEMBER [Date].[Calendar].[2_0_0.NonEmptyMemberCount] AS 
+    {{[Date.Calendar.NonEmptySelection_2_0_0]}}.Count 
+  MEMBER [Measures].[3_0_0.MemberCount] AS 
+    {{[Measures.Selection_3_0_0]}}.Count 
+
+  // Setting up indexes for easier querying
+  MEMBER [Product].[Product Categories].[0_0.TupleIndex] AS 0 
+  MEMBER [Product].[Product Categories].[1_0.TupleIndex] AS 1 
+  MEMBER [Date].[Calendar].[1_1.TupleIndex] AS 1 
+  MEMBER [Date].[Calendar].[2_0.TupleIndex] AS 2 
+  MEMBER [Measures].[3_0.TupleIndex] AS 3 
+  MEMBER [Product].[Product Categories].[0_0.HierarchyIndex] AS 0 
+  MEMBER [Product].[Product Categories].[1_0.HierarchyIndex] AS 0 
+  MEMBER [Date].[Calendar].[1_1.HierarchyIndex] AS 1 
+  MEMBER [Date].[Calendar].[2_0.HierarchyIndex] AS 0 
+  MEMBER [Measures].[3_0.HierarchyIndex] AS 0 
+
+SELECT 
+  {[Measures.Selection_3_0_0]} ON 0,
+  {
+    {
+      [Product].[Product Categories].[0_0.TupleIndex]
+     ,[Product].[Product Categories].[0_0.HierarchyIndex]
+     ,[Product].[Product Categories].[0_0_0.MemberCount]
+     ,[Product].[Product Categories].[0_0_0.NonEmptyMemberCount]
+     ,[Product].[Product Categories].[0_0_1.MemberCount]
+     ,[Product].[Product Categories].[0_0_1.NonEmptyMemberCount]
+    }
+    * [Date].[Calendar].[Dummy]
+   ,
+    {
+      [Product].[Product Categories].[1_0.TupleIndex]
+     ,[Product].[Product Categories].[1_0.HierarchyIndex]
+     ,[Product].[Product Categories].[1_0_0.MemberCount]
+     ,[Product].[Product Categories].[1_0_0.NonEmptyMemberCount]
+    }
+    * [Date].[Calendar].[Dummy]
+   ,
+    [Product].[Product Categories].[Dummy]
+    * {
+      [Date].[Calendar].[1_1.TupleIndex]
+     ,[Date].[Calendar].[1_1.HierarchyIndex]
+     ,[Date].[Calendar].[1_1_0.MemberCount]
+     ,[Date].[Calendar].[1_1_0.NonEmptyMemberCount]
+    }
+   ,
+    [Product].[Product Categories].[Dummy]
+    * {
+      [Date].[Calendar].[2_0.TupleIndex]
+     ,[Date].[Calendar].[2_0.HierarchyIndex]
+     ,[Date].[Calendar].[2_0_0.MemberCount]
+     ,[Date].[Calendar].[2_0_0.NonEmptyMemberCount]
+    }
+  } ON 1
+FROM 
+  (
+    SELECT 
+      {
+        [Reseller].[Reseller Bank].[Bank Name].&[International Security]
+       ,[Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve]
+       ,[Reseller].[Reseller Bank].[Bank Name].&[United Security]
+      } ON 0
+    FROM 
+    (
+      SELECT 
+        {
+          [Customer].[Customer Geography].[Country].&[Canada]
+         ,[Customer].[Customer Geography].[Country].&[Germany]
+        } ON 0
+      FROM [Adventure Works]
+    )
+  );

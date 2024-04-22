@@ -1,0 +1,62 @@
+-- This script demonstrates the use of MDX to perform year-over-year analysis and handle various time-based calculations
+-- for the "Adventure Works" cube, with particular focus on the Fiscal Year dimension.
+
+-- Calculating the increase in orders year-over-year using the ParallelPeriod function.
+WITH 
+MEMBER [Measures].[Increase] AS 
+    ([Date].[Fiscal].CurrentMember, [Measures].[Reseller Order Quantity]) - 
+    (ParallelPeriod([Date].[Fiscal].[Fiscal Year], 1, [Date].[Fiscal].CurrentMember), [Measures].[Reseller Order Quantity]),
+    FORMAT_STRING = "#,#"
+SELECT
+    [Date].[Fiscal].[Fiscal Year] ON COLUMNS,
+    {[Measures].[Reseller Order Quantity], [Measures].[Increase]} ON ROWS
+FROM
+    [Adventure Works];
+
+-- Calculating the increase from two years ago.
+WITH 
+MEMBER [Measures].[Increase 2 Years] AS 
+    ([Date].[Fiscal].CurrentMember, [Measures].[Reseller Order Quantity]) - 
+    (ParallelPeriod([Date].[Fiscal].[Fiscal Year], 2, [Date].[Fiscal].CurrentMember), [Measures].[Reseller Order Quantity]),
+    FORMAT_STRING = "#,#"
+SELECT
+    [Date].[Fiscal].[Fiscal Year] ON COLUMNS,
+    {[Measures].[Reseller Order Quantity], [Measures].[Increase 2 Years]} ON ROWS
+FROM
+    [Adventure Works];
+
+-- Handling missing data by replacing NULLs with zero and computing the increase for years where data exists.
+WITH 
+MEMBER [Measures].[Order Quantity] AS 
+    IIF(IsEmpty([Measures].[Reseller Order Quantity]), 0, [Measures].[Reseller Order Quantity]),
+MEMBER [Measures].[Increase 2 Years] AS 
+    CASE 
+        WHEN IsEmpty(ParallelPeriod([Date].[Fiscal].[Fiscal Year], 2, [Date].[Fiscal].CurrentMember))
+        THEN NULL
+        ELSE ([Date].[Fiscal].CurrentMember, [Measures].[Reseller Order Quantity]) - 
+             (ParallelPeriod([Date].[Fiscal].[Fiscal Year], 2, [Date].[Fiscal].CurrentMember), [Measures].[Reseller Order Quantity])
+    END,
+    FORMAT_STRING = "#,#"
+SELECT
+    [Date].[Fiscal].[Fiscal Year] ON COLUMNS,
+    {[Measures].[Order Quantity], [Measures].[Increase 2 Years]} ON ROWS
+FROM
+    [Adventure Works];
+
+-- A refined approach to only calculate increases where the previous periods' data is available, excluding the first two years.
+WITH 
+MEMBER [Measures].[Quantity Sold] AS 
+    IIF(IsEmpty([Measures].[Reseller Order Quantity]), 0, [Measures].[Reseller Order Quantity]),
+MEMBER [Measures].[Increase 2 Years] AS 
+    CASE 
+        WHEN IsEmpty(ParallelPeriod([Date].[Fiscal].[Fiscal Year], 2, [Date].[Fiscal]))
+        THEN NULL
+        ELSE ([Measures].[Reseller Order Quantity]) - 
+             (ParallelPeriod([Date].[Fiscal].[Fiscal Year], 2, [Date].[Fiscal]), [Measures].[Reseller Order Quantity])
+    END,
+    FORMAT_STRING = "#,#"
+SELECT
+    [Date].[Fiscal].[Fiscal Year] ON COLUMNS,
+    {[Measures].[Quantity Sold], [Measures].[Increase 2 Years]} ON ROWS
+FROM
+    [Adventure Works];

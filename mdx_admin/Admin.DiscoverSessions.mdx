@@ -1,0 +1,19 @@
+-- This query provides a detailed overview of sessions in SQL Server Analysis Services (SSAS).
+-- It retrieves session-specific information such as SPID, username, database, memory usage,
+-- command count, elapsed and CPU time, and read/write statistics, displaying the most resource-intensive sessions first.
+
+SELECT 
+    SESSION_SPID AS Spid,                  -- Session ID
+    SESSION_USER_NAME AS UserName,         -- User name associated with the session
+    SESSION_CURRENT_DATABASE AS CurrentDB, -- Database currently being accessed by the session
+    SESSION_USED_MEMORY AS UsedMem,        -- Memory used by the session in KB
+    SESSION_COMMAND_COUNT AS CmdCnt,       -- Total commands executed by the session
+    SESSION_ELAPSED_TIME_MS / 1000 AS ElapsedSec, -- Total time the session has been active, in seconds
+    SESSION_CPU_TIME_MS / 1000 AS CpuSec,  -- CPU time used by the session, in seconds
+    SESSION_READ_KB AS ReadKB,             -- Data read by the session, in KB
+    SESSION_WRITE_KB AS WriteKB,           -- Data written by the session, in KB
+    SESSION_STATUS AS Status               -- Current status of the session
+FROM 
+    $SYSTEM.DISCOVER_SESSIONS
+ORDER BY 
+    CpuSec DESC; -- Order by CPU time in descending order to find the most resource-intensive sessions

@@ -1,0 +1,79 @@
+WITH 
+  MEMBER [Measures].[-DimBrowseProp Address-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Address"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Birth Date-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Birth Date"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Commute Distance-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Commute Distance"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Date of First Purchase-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Date of First Purchase"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Education-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Education"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Email Address-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Email Address"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Gender-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Gender"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Home Owner-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Home Owner"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Marital Status-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Marital Status"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Number of Cars Owned-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Number of Cars Owned"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Number of Children At Home-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Number of Children At Home"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Occupation-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Occupation"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Phone-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Phone"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Postal Code-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Postal Code"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Total Children-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Total Children"
+   ,TYPED) 
+  MEMBER [Measures].[-DimBrowseProp Yearly Income-] AS 
+    [Customer].[Customer].CurrentMember.Properties("Yearly Income"
+   ,TYPED) 
+SELECT 
+  {
+   [Measures].[-DimBrowseProp Address-]
+   ,[Measures].[-DimBrowseProp Birth Date-]
+   ,[Measures].[-DimBrowseProp Commute Distance-]
+   ,[Measures].[-DimBrowseProp Date of First Purchase-]
+   ,[Measures].[-DimBrowseProp Education-]
+   ,[Measures].[-DimBrowseProp Email Address-]
+   ,[Measures].[-DimBrowseProp Gender-]
+   ,[Measures].[-DimBrowseProp Home Owner-]
+   ,[Measures].[-DimBrowseProp Marital Status-]
+   ,[Measures].[-DimBrowseProp Number of Cars Owned-]
+   ,[Measures].[-DimBrowseProp Number of Children At Home-]
+   ,[Measures].[-DimBrowseProp Occupation-]
+   ,[Measures].[-DimBrowseProp Phone-]
+   ,[Measures].[-DimBrowseProp Postal Code-]
+   ,[Measures].[-DimBrowseProp Total Children-]
+   ,[Measures].[-DimBrowseProp Yearly Income-]
+, [Measures].[Amount]
+, [Measures].[Average Rate]
+, [Measures].[Customer Count]
+, [Measures].[Reseller Sales Amount]
+  } ON 0
+ ,Subset
+  (
+    {[Customer].[Customer].[All Customers].Children} * {[Customer].[Customer Geography].[City].members}
+   ,555, 3
+  ) ON 1
+FROM [Adventure Works]
+CELL PROPERTIES VALUE;

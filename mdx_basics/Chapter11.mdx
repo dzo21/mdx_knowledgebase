@@ -1,0 +1,47 @@
+-- This script demonstrates the use of MDX queries to manage data visibility based on measure values in the 'Adventure Works' cube,
+-- particularly focusing on handling empty cells and visibility of data in the context of different measures.
+
+-- Selecting data with potential empty cells and using a WHERE clause to filter based on Internet Order Quantity.
+SELECT
+    {[Product].[Product Categories].[Category].[Accessories]} ON COLUMNS,
+    {[Date].[Calendar].[Calendar Year]} ON ROWS
+FROM
+    [Adventure Works]
+WHERE
+    [Measures].[Internet Order Quantity];
+
+-- Using NON EMPTY to automatically hide any rows where the specified measure returns no data.
+SELECT
+    {[Product].[Product Categories].[Category].[Accessories]} ON COLUMNS,
+    NON EMPTY {[Date].[Calendar].[Calendar Year]} ON ROWS
+FROM
+    [Adventure Works]
+WHERE
+    [Measures].[Internet Order Quantity];
+
+-- Specifying NONEMPTY function to explicitly hide empty cells, providing a clearer view of data where measures are actually recorded.
+SELECT
+    {[Measures].[Internet Order Quantity], [Measures].[Reseller Sales Amount]} ON COLUMNS,
+    NONEMPTY({[Date].[Calendar].[Calendar Year]}, [Measures].[Internet Order Quantity]) ON ROWS
+FROM
+    [Adventure Works]
+WHERE
+    [Product].[Product Categories].[Category].[Accessories];
+
+-- Demonstrating a query using the NONEMPTY function with a different measure for testing emptiness, showcasing flexibility in handling visibility based on data presence.
+SELECT
+    {[Measures].[Internet Order Quantity], [Measures].[Reseller Sales Amount]} ON COLUMNS,
+    NONEMPTY({[Date].[Calendar].[Calendar Year]}, [Measures].[Reseller Sales Amount]) ON ROWS
+FROM
+    [Adventure Works]
+WHERE
+    [Product].[Product Categories].[Category].[Accessories];
+
+-- An advanced usage of NONEMPTY, showing data only where 'Reseller Sales Amount' is recorded, which might differ from where 'Internet Order Quantity' is recorded.
+SELECT
+    {[Measures].[Reseller Sales Amount]} ON COLUMNS,
+    NONEMPTY({[Date].[Calendar].[Calendar Year]}, [Measures].[Reseller Sales Amount]) ON ROWS
+FROM
+    [Adventure Works]
+WHERE
+    [Product].[Product Categories].[Category].[Accessories];

@@ -1,0 +1,125 @@
+WITH 
+  MEMBER [Geography].[Geography].[AGGR_9e3e8a17-556b-4be6-90f6-0025d18f109d] AS 
+    Aggregate
+    (
+      {
+        [Geography].[Geography].[State-Province].&[BB]&[DE]
+       ,[Geography].[Geography].[State-Province].&[HH]&[DE]
+       ,[Geography].[Geography].[State-Province].&[HE]&[DE]
+       ,[Geography].[Geography].[State-Province].&[NW]&[DE]
+       ,[Geography].[Geography].[State-Province].&[SL]&[DE]
+      }
+     ,[Measures].CurrentMember
+    ) 
+  MEMBER [Geography].[Geography].[AGGR_908f3591-a3ff-43cd-8429-69336bba6d1f] AS 
+    Aggregate
+    (
+      {
+        [Geography].[Geography].[Country].&[Australia]
+       ,[Geography].[Geography].[Country].&[Canada]
+       ,[Geography].[Geography].[Country].&[France]
+       ,[Geography].[Geography].[State-Province].&[BB]&[DE]
+       ,[Geography].[Geography].[State-Province].&[HH]&[DE]
+       ,[Geography].[Geography].[State-Province].&[HE]&[DE]
+       ,[Geography].[Geography].[State-Province].&[NW]&[DE]
+       ,[Geography].[Geography].[State-Province].&[SL]&[DE]
+       ,[Geography].[Geography].[Country].&[United Kingdom]
+      }
+     ,[Measures].CurrentMember
+    ) 
+  SET [Measures.Selection_0_0] AS 
+    {[Measures].[Reseller Sales Amount]} 
+  SET [Geography.Geography.Selection_1_0] AS 
+    {
+      [Geography].[Geography].[Country].&[Australia]
+     ,[Geography].[Geography].[Country].&[Canada]
+     ,[Geography].[Geography].[Country].&[France]
+     ,[Geography].[Geography].[State-Province].&[BB]&[DE]
+     ,[Geography].[Geography].[State-Province].&[HH]&[DE]
+     ,[Geography].[Geography].[State-Province].&[HE]&[DE]
+     ,[Geography].[Geography].[State-Province].&[NW]&[DE]
+     ,[Geography].[Geography].[State-Province].&[SL]&[DE]
+     ,[Geography].[Geography].[AGGR_9e3e8a17-556b-4be6-90f6-0025d18f109d]
+     ,[Geography].[Geography].[Country].&[Germany]
+     ,[Geography].[Geography].[Country].&[United Kingdom]
+     ,[Geography].[Geography].[All Geographies]
+     ,[Geography].[Geography].[AGGR_908f3591-a3ff-43cd-8429-69336bba6d1f]
+    } 
+SELECT 
+  {[Measures.Selection_0_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {[Geography.Geography.Selection_1_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM 
+(
+  SELECT 
+    {
+        {
+          [Geography].[Geography].[Country].&[Australia]
+         ,[Geography].[Geography].[Country].&[Canada]
+         ,[Geography].[Geography].[Country].&[France]
+         ,[Geography].[Geography].[State-Province].&[BB]&[DE]
+         ,[Geography].[Geography].[State-Province].&[HH]&[DE]
+         ,[Geography].[Geography].[State-Province].&[HE]&[DE]
+         ,[Geography].[Geography].[State-Province].&[NW]&[DE]
+         ,[Geography].[Geography].[State-Province].&[SL]&[DE]
+         ,[Geography].[Geography].[State-Province].&[BB]&[DE]
+         ,[Geography].[Geography].[State-Province].&[HH]&[DE]
+         ,[Geography].[Geography].[State-Province].&[HE]&[DE]
+         ,[Geography].[Geography].[State-Province].&[NW]&[DE]
+         ,[Geography].[Geography].[State-Province].&[SL]&[DE]
+         ,[Geography].[Geography].[Country].&[Germany]
+         ,[Geography].[Geography].[Country].&[United Kingdom]
+         ,[Geography].[Geography].[All Geographies]
+         ,[Geography].[Geography].[Country].&[Australia]
+         ,[Geography].[Geography].[Country].&[Canada]
+         ,[Geography].[Geography].[Country].&[France]
+         ,[Geography].[Geography].[State-Province].&[BB]&[DE]
+         ,[Geography].[Geography].[State-Province].&[HH]&[DE]
+         ,[Geography].[Geography].[State-Province].&[HE]&[DE]
+         ,[Geography].[Geography].[State-Province].&[NW]&[DE]
+         ,[Geography].[Geography].[State-Province].&[SL]&[DE]
+         ,[Geography].[Geography].[Country].&[United Kingdom]
+        }
+      - 
+        {
+          Generate
+          (
+            {
+              [Geography].[Geography].[Country].&[Australia]
+             ,[Geography].[Geography].[Country].&[Canada]
+             ,[Geography].[Geography].[Country].&[France]
+             ,[Geography].[Geography].[State-Province].&[BB]&[DE]
+             ,[Geography].[Geography].[State-Province].&[HH]&[DE]
+             ,[Geography].[Geography].[State-Province].&[HE]&[DE]
+             ,[Geography].[Geography].[State-Province].&[NW]&[DE]
+             ,[Geography].[Geography].[State-Province].&[SL]&[DE]
+             ,[Geography].[Geography].[State-Province].&[BB]&[DE]
+             ,[Geography].[Geography].[State-Province].&[HH]&[DE]
+             ,[Geography].[Geography].[State-Province].&[HE]&[DE]
+             ,[Geography].[Geography].[State-Province].&[NW]&[DE]
+             ,[Geography].[Geography].[State-Province].&[SL]&[DE]
+             ,[Geography].[Geography].[Country].&[Germany]
+             ,[Geography].[Geography].[Country].&[United Kingdom]
+             ,[Geography].[Geography].[All Geographies]
+             ,[Geography].[Geography].[Country].&[Australia]
+             ,[Geography].[Geography].[Country].&[Canada]
+             ,[Geography].[Geography].[Country].&[France]
+             ,[Geography].[Geography].[State-Province].&[BB]&[DE]
+             ,[Geography].[Geography].[State-Province].&[HH]&[DE]
+             ,[Geography].[Geography].[State-Province].&[HE]&[DE]
+             ,[Geography].[Geography].[State-Province].&[NW]&[DE]
+             ,[Geography].[Geography].[State-Province].&[SL]&[DE]
+             ,[Geography].[Geography].[Country].&[United Kingdom]
+            }
+           ,{
+                Ascendants([Geography].[Geography].CurrentMember)
+              - 
+                [Geography].[Geography].CurrentMember
+            }
+          )
+        }
+    } ON 0
+  FROM [Adventure Works]
+);

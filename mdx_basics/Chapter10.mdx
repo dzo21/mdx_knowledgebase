@@ -1,0 +1,76 @@
+-- This MDX script is designed to demonstrate various queries on the 'Adventure Works' cube,
+-- focusing on selecting data from specific perspectives, handling subselects, and managing subcubes.
+
+-- Selecting internet sales amount from the 'Direct Sales' perspective.
+SELECT
+    [Measures].[Internet Sales Amount] ON COLUMNS
+FROM
+    [Direct Sales];
+
+-- Selecting reseller sales amount from the 'Direct Sales' perspective.
+SELECT
+    [Measures].[Reseller Sales Amount] ON COLUMNS
+FROM
+    [Direct Sales];
+
+-- Base query to filter sales reasons from 'Adventure Works'.
+SELECT
+    [Sales Reason].[Sales Reasons].[Reason Type] ON COLUMNS
+FROM
+    [Adventure Works]
+WHERE
+    [Measures].[Internet Sales Amount];
+
+-- Using a subselect to filter the data to only include 'Other' reasons.
+SELECT
+    [Sales Reason].[Sales Reasons].[Reason Type] ON COLUMNS
+FROM
+    (SELECT
+        [Sales Reason].[Sales Reasons].[Reason Type].[Other] ON COLUMNS
+     FROM
+        [Adventure Works])
+WHERE
+    [Measures].[Internet Sales Amount];
+
+-- Displaying visual totals for calendar years between 2002 and 2004.
+SELECT
+    {[Date].[Calendar], [Date].[Calendar].[Calendar Year].Members} ON COLUMNS
+FROM
+    (SELECT 
+        [Date].[Calendar].[Calendar Year].[CY 2002]:[Date].[Calendar].[Calendar Year].[CY 2004] ON COLUMNS 
+     FROM 
+        [Adventure Works]);
+
+-- Creating a subcube for the 'Adventure Works' cube focusing on a specific sales reason.
+CREATE SUBCUBE [Adventure Works] AS
+SELECT
+    [Sales Reason].[Sales Reasons].[Reason Type].[Other] ON COLUMNS,
+    [Measures].[Internet Sales Amount] ON ROWS
+FROM
+    [Adventure Works];
+
+-- Querying within a created subcube to show sales reasons.
+SELECT
+    [Sales Reason].[Sales Reasons].[Reason Type] ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Dropping the created subcube to clean up.
+DROP SUBCUBE [Adventure Works];
+
+-- Creating a subcube with non-visual totals across selected calendar years.
+CREATE SUBCUBE [Adventure Works] AS
+    NON VISUAL
+    (SELECT 
+        [Date].[Calendar].[Calendar Year].[CY 2002]:[Date].[Calendar].[Calendar Year].[CY 2004] ON COLUMNS 
+     FROM 
+        [Adventure Works]);
+
+-- Querying the non-visual totals subcube for calendar years.
+SELECT
+    {[Date].[Calendar], [Date].[Calendar].[Calendar Year].Members} ON COLUMNS
+FROM
+    [Adventure Works];
+
+-- Dropping the non-visual totals subcube.
+DROP SUBCUBE [Adventure Works];

@@ -1,0 +1,146 @@
+WITH 
+  MEMBER [Product].[Product Categories].[Dummy] AS 
+    Aggregate([Product].[Product Categories].DefaultMember.Children) 
+  MEMBER [Date].[Fiscal Year].[Dummy] AS 
+    Aggregate([Date].[Fiscal Year].DefaultMember.Children) 
+  MEMBER [Product].[Product Categories].[Empty Range] AS 
+    [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Fiscal Year].[Empty Range] AS 
+    [Date].[Fiscal Year].DefaultMember 
+  SET [Measures.Selection_0_0] AS 
+    {
+      [Measures].[Internet Order Count]
+     ,[Measures].[Order Count]
+     ,[Measures].[Reseller Order Count]
+    } 
+  SET [Product.Product Categories.Selection_1_0] AS 
+    {
+      [Product].[Product Categories].[Category].&[4]
+     ,[Product].[Product Categories].[Category].&[1]
+     ,[Product].[Product Categories].[Category].&[3]
+     ,[Product].[Product Categories].[Category].&[2]
+    } 
+  SET [Date.Fiscal Year.Selection_1_1] AS 
+    {
+      [Date].[Fiscal Year].&[2005]
+     ,[Date].[Fiscal Year].&[2006]
+     ,[Date].[Fiscal Year].&[2007]
+     ,[Date].[Fiscal Year].&[2008]
+     ,[Date].[Fiscal Year].&[2009]
+     ,[Date].[Fiscal Year].&[2010]
+     ,[Date].[Fiscal Year].&[2011]
+    } 
+SELECT 
+  NON EMPTY 
+    {[Measures.Selection_0_0]}
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
+ ,NON EMPTY 
+    {
+      Generate
+      (
+        [Product.Product Categories.Selection_1_0]
+       ,Order
+        (
+            {[Product].[Product Categories].CurrentMember}
+          * 
+            [Date.Fiscal Year.Selection_1_1]
+         ,[Measures].[Internet Order Quantity]
+         ,BDESC
+        )
+       ,ALL
+      )
+     ,
+        {[Product].[Product Categories].[Empty Range]}
+      * 
+        {[Date].[Fiscal Year].[Empty Range]}
+    }
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+FROM 
+(
+  SELECT 
+    {
+        {
+          [Product].[Product Categories].[Category].&[4]
+         ,[Product].[Product Categories].[Category].&[1]
+         ,[Product].[Product Categories].[Category].&[3]
+         ,[Product].[Product Categories].[Category].&[2]
+        }
+      - 
+        {
+          Ancestors
+          (
+            [Product].[Product Categories].[Category].&[4]
+           ,{[Product].[Product Categories].[Category].&[4]}.Item(0).Level_Number
+          )
+         ,Ancestors
+          (
+            [Product].[Product Categories].[Category].&[1]
+           ,{[Product].[Product Categories].[Category].&[1]}.Item(0).Level_Number
+          )
+         ,Ancestors
+          (
+            [Product].[Product Categories].[Category].&[3]
+           ,{[Product].[Product Categories].[Category].&[3]}.Item(0).Level_Number
+          )
+         ,Ancestors
+          (
+            [Product].[Product Categories].[Category].&[2]
+           ,{[Product].[Product Categories].[Category].&[2]}.Item(0).Level_Number
+          )
+        }
+    } ON 0
+  FROM 
+  (
+    SELECT 
+      {
+          {
+            [Date].[Fiscal Year].&[2005]
+           ,[Date].[Fiscal Year].&[2006]
+           ,[Date].[Fiscal Year].&[2007]
+           ,[Date].[Fiscal Year].&[2008]
+           ,[Date].[Fiscal Year].&[2009]
+           ,[Date].[Fiscal Year].&[2010]
+           ,[Date].[Fiscal Year].&[2011]
+          }
+        - 
+          {
+            Ancestors
+            (
+              [Date].[Fiscal Year].&[2005]
+             ,{[Date].[Fiscal Year].&[2005]}.Item(0).Level_Number
+            )
+           ,Ancestors
+            (
+              [Date].[Fiscal Year].&[2006]
+             ,{[Date].[Fiscal Year].&[2006]}.Item(0).Level_Number
+            )
+           ,Ancestors
+            (
+              [Date].[Fiscal Year].&[2007]
+             ,{[Date].[Fiscal Year].&[2007]}.Item(0).Level_Number
+            )
+           ,Ancestors
+            (
+              [Date].[Fiscal Year].&[2008]
+             ,{[Date].[Fiscal Year].&[2008]}.Item(0).Level_Number
+            )
+           ,Ancestors
+            (
+              [Date].[Fiscal Year].&[2009]
+             ,{[Date].[Fiscal Year].&[2009]}.Item(0).Level_Number
+            )
+           ,Ancestors
+            (
+              [Date].[Fiscal Year].&[2010]
+             ,{[Date].[Fiscal Year].&[2010]}.Item(0).Level_Number
+            )
+           ,Ancestors
+            (
+              [Date].[Fiscal Year].&[2011]
+             ,{[Date].[Fiscal Year].&[2011]}.Item(0).Level_Number
+            )
+          }
+      } ON 0
+    FROM [Adventure Works]
+  )
+);

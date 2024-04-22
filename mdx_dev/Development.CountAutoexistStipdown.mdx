@@ -1,0 +1,57 @@
+-- Refactoring the MDX query to optimize structure and clarity, with added documentation for better understanding.
+
+WITH 
+  -- Dummy members for default selections, useful for handling cases where no specific member is selected.
+  MEMBER [Product].[Product Categories].[Dummy] AS [Product].[Product Categories].DefaultMember,
+  MEMBER [Product].[Category].[Dummy] AS [Product].[Category].DefaultMember,
+  MEMBER [Date].[Calendar].[Dummy] AS [Date].[Calendar].DefaultMember,
+  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS [Product].[Product Categories].DefaultMember,
+  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS [Date].[Calendar].DefaultMember,
+  MEMBER [Measures].[Dummy] AS [Measures].DefaultMember,
+  MEMBER [Measures].[EmptyRangeDummy] AS [Measures].DefaultMember,
+
+  -- Selection sets to define specific product categories and measures for analysis.
+  SET [Product.Product Categories.Selection] AS {
+    [Product].[Product Categories].[Product].&[573],
+    [Product].[Product Categories].[Product].&[574],
+    [Product].[Product Categories].[Product].&[564],
+    [Product].[Product Categories].[Product].&[329],
+    [Product].[Product Categories].[Product].&[353]
+  },
+  SET [Product.Category.Selection] AS {
+    [Product].[Category].&[1]
+  },
+  SET [Date.Calendar.Selection] AS {
+    [Date].[Calendar].[Calendar Year].&[2008]
+  },
+  SET [Measures.Selection] AS {
+    [Measures].[Reseller Sales Amount],
+    [Measures].[Internet Tax Amount],
+    [Measures].[Internet Order Quantity]
+  },
+
+  -- NonEmpty selections to filter out data that has relevant measures to avoid showing empty data.
+  SET [NonEmpty Product Categories] AS NonEmpty(
+    [Product.Product Categories.Selection] * [Measures.Selection]
+  ),
+
+  -- Count members for debugging or detailed analysis requirements.
+  MEMBER [Measures].[NonEmpty Product Categories Count] AS [NonEmpty Product Categories].Count,
+  MEMBER [Measures].[Date Calendar Selection Count] AS [Date.Calendar.Selection].Count
+
+SELECT 
+  -- Measures displayed on columns.
+  {
+    [Measures].[Reseller Sales Amount],
+    [Measures].[NonEmpty Product Categories Count],
+    [Measures].[Date Calendar Selection Count]
+  } ON COLUMNS,
+
+  -- Non-empty product categories and date selections on rows to provide a matrix of sales data.
+  NON EMPTY {
+    [NonEmpty Product Categories] * [Date.Calendar.Selection]
+  } ON ROWS
+FROM 
+  [Adventure Works]
+WHERE 
+  [Product].[Category].&[1]; -- Restricting the query to a specific product category for focused analysis.

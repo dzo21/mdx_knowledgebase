@@ -1,0 +1,201 @@
+WITH 
+  MEMBER [Date].[Date].[Results] AS "Results" 
+  MEMBER measures.[lowercase found in lowercase string] AS 
+    Instr
+    ("abcdefghijklmnñopqrstuvwxyz"
+     ,"o"
+    ) 
+  MEMBER measures.[uppercase found in lowercase string] AS 
+    Instr
+    ("abcdefghijklmnñopqrstuvwxyz"
+     ,"O"
+    ) 
+  MEMBER measures.[searched string is empty] AS 
+    Instr
+    (""
+     ,"o"
+    ) 
+  MEMBER measures.[searched string is null] AS 
+    IIF
+    (
+      Iserror(Instr(NULL,"o"))
+     ,"Is Error"
+     ,IIF
+      (
+        Isnull(Instr(NULL,"o"))
+       ,"Is Null"
+       ,"Is undefined"
+      )
+    ) 
+  MEMBER measures.[search string is empty] AS 
+    Instr
+    ("abcdefghijklmnñopqrstuvwxyz"
+     ,""
+    ) 
+  MEMBER measures.[search string is empty start 10] AS 
+    Instr
+    (10
+     ,"abcdefghijklmnñopqrstuvwxyz"
+     ,""
+    ) 
+  MEMBER measures.[search string is null] AS 
+    IIF
+    (
+      Iserror(Instr(NULL,"o"))
+     ,"Is Error"
+     ,IIF
+      (
+        Isnull(Instr(NULL,"o"))
+       ,"Is Null"
+       ,"Is undefined"
+      )
+    ) 
+  MEMBER measures.[found from start 10] AS 
+    Instr
+    (10
+     ,"abcdefghijklmnñopqrstuvwxyz"
+     ,"o"
+    ) 
+  MEMBER measures.[NOT found from start 17] AS 
+    Instr
+    (17
+     ,"abcdefghijklmnñopqrstuvwxyz"
+     ,"o"
+    ) 
+  MEMBER measures.[NULL start] AS 
+    IIF
+    (
+      Iserror(Instr(NULL,"abcdefghijklmnñopqrstuvwxyz","o"))
+     ,"Is Error"
+     ,IIF
+      (
+        Isnull(Instr(NULL,"abcdefghijklmnñopqrstuvwxyz","o"))
+       ,"Is Null"
+       ,"Is undefined"
+      )
+    ) 
+  MEMBER measures.[start greater than searched length] AS 
+    Instr
+    (170
+     ,"abcdefghijklmnñopqrstuvwxyz"
+     ,"o"
+    ) 
+SELECT 
+  [Results] ON COLUMNS
+ ,{
+    measures.[lowercase found in lowercase string]
+   ,measures.[uppercase found in lowercase string]
+   ,measures.[searched string is empty]
+   ,measures.[searched string is null]
+   ,measures.[search string is empty]
+   ,measures.[search string is empty start 10]
+   ,measures.[search string is null]
+   ,measures.[found from start 10]
+   ,measures.[NOT found from start 17]
+   ,measures.[NULL start]
+   ,measures.[start greater than searched length]
+  } ON ROWS
+FROM [Adventure Works];
+
+
+with MEMBER measures.[lowercase found in lowercase string] AS 
+    Instr
+    ([Customer].[Customer Geography].CurrentMember.Name
+     ,"Au"
+    ) 
+select 
+filter([Customer].[Customer Geography].members, measures.[lowercase found in lowercase string] > 0) 
+on 0, null on 1
+from [Adventure Works]
+
+
+
+WITH 
+  MEMBER measures.[match] AS 
+    Instr
+    (
+      [Customer].[Customer Geography].CurrentMember.Properties("City")
+     ,"fu"
+    ) 
+SELECT 
+  Filter
+  (
+    [Customer].[Customer Geography].MEMBERS
+   ,
+    measures.[match] > 0
+  ) ON 0
+ ,null ON 1
+FROM [Adventure Works];
+
+
+
+WITH 
+  MEMBER measures.[match1] AS 
+    Instr
+    (
+      [Customer].[Customer].CurrentMember.Properties("Address"
+     ,TYPED)
+     ,"son"
+    )
+ MEMBER measures.[match2] AS 
+    Instr
+    (
+      [Customer].[Customer].CurrentMember.Name
+     ,"son"
+    ) 
+SELECT 
+  {
+    Filter
+    (
+      [Customer].[Customer Geography].MEMBERS
+     ,
+      [Measures].[match1] > 0
+	  AND
+	  [Measures].[match2] > 0
+    )
+  }
+  DIMENSION PROPERTIES [Customer].[Customer Geography].[Address]  
+  ON 0
+ ,NULL ON 1
+FROM [Adventure Works];
+
+
+
+WITH 
+MEMBER measures.[hiername] AS [Customer].[Customer].CurrentMember.Hierarchy.Name
+  MEMBER measures.[match1] AS 
+    Instr
+    (
+      [Customer].[Customer].CurrentMember.Properties("Address"
+     ,TYPED)
+     ,"Anderson"
+    )
+ MEMBER measures.[match2] AS 
+    Instr
+    (
+      [Customer].[Customer].CurrentMember.Name
+     ,"Anderson"
+    ) 
+SELECT 
+  {
+	Hierarchize(
+	
+		Filter
+			(
+			[Customer].[Customer Geography].MEMBERS
+			,
+			[Measures].[match1] > 0
+			AND
+			[Measures].[match2] > 0
+			)
+	)
+    
+  }
+  DIMENSION PROPERTIES [Customer].[Customer Geography].[Address]  
+  ON 0
+ ,measures.[hiername] ON 1
+FROM [Adventure Works];
+
+
+[Customer].[Customer].CurrentMember.Member_Caption
+
