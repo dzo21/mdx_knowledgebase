@@ -1,4 +1,5 @@
 WITH 
+  -- Creating members as aliases for default members in the Measures and Product dimensions.
   MEMBER [Measures].[Dummy] AS 
     [Measures].DefaultMember 
   MEMBER [Measures].[EmptyRangeDummy] AS 
@@ -11,17 +12,23 @@ WITH
     [Product].[Category].DefaultMember 
   MEMBER [Product].[Subcategory].[EmptyRangeDummy] AS 
     [Product].[Subcategory].DefaultMember 
+  
+  -- Setting a measure selection for Reseller Sales Amount.
   SET [Measures.Selection_0_0] AS 
     {{[Measures].[Reseller Sales Amount]}} 
+  
+  -- Setting drill down levels for Product Category and Subcategory.
   SET [DrillDownLevel.Product.Category.Selection_1_0] AS 
     {{DrillDownLevel({[Product].[Category].DefaultMember})}} 
   SET [DrillDownLevel.Product.Subcategory.Selection_1_1] AS 
     {{DrillDownLevel({[Product].[Subcategory].DefaultMember})}} 
+
+-- Selecting data using the defined measures and drill-down levels.
 SELECT 
-  {[Measures.Selection_0_0]} ON 0
- ,{
-      [DrillDownLevel.Product.Category.Selection_1_0]
+  {[Measures.Selection_0_0]} ON COLUMNS,
+  {
+    [DrillDownLevel.Product.Category.Selection_1_0]
     * 
-      [DrillDownLevel.Product.Subcategory.Selection_1_1]
-  } ON 1
+    [DrillDownLevel.Product.Subcategory.Selection_1_1]
+  } ON ROWS
 FROM [Adventure Works];

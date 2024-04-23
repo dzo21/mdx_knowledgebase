@@ -1,44 +1,36 @@
 WITH 
-  SET [Customer.Customer Geography.SelectedDrilldown_1_1_1] AS 
+  SET [SelectedCountries] AS 
     {
-      [Customer].[Customer Geography].[Country].&[Australia]
-     ,[Customer].[Customer Geography].[Country].&[Canada]
+      [Customer].[Customer Geography].[Country].&[Australia],
+      [Customer].[Customer Geography].[Country].&[Canada]
     } 
-  SET [Measures.Selection_0_0] AS 
+  SET [OrderQuantityMeasure] AS 
     {[Measures].[Internet Order Quantity]} 
-  SET [DrillDownLevel.Date.Calendar.Selection_1_0] AS 
+  SET [AllDates] AS 
     {DrillDownLevel({[Date].[Calendar].DefaultMember})} 
-  SET [DrillDownLevel.Customer.Customer Geography.Selection_1_1] AS 
+  SET [AllCustomerGeographies] AS 
     {
       DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
     } 
+
+-- Selects the Internet Order Quantity measure and the hierarchy for Date and Customer Geography.
 SELECT 
-  {[Measures.Selection_0_0]}
-  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
- ,NON EMPTY 
+  [OrderQuantityMeasure] DIMENSION PROPERTIES [PARENT_UNIQUE_NAME] ON 0,
+  NON EMPTY 
     {
       Generate
       (
-        [DrillDownLevel.Date.Calendar.Selection_1_0]
-       ,IIF
+        [AllDates],
+        IIF
         (
-            [Date].[Calendar].CurrentMember
-          IS 
-            [Date].[Calendar].[Calendar Year].&[2006]
-         ,Generate
-          (
-            [Customer.Customer Geography.SelectedDrilldown_1_1_1]
-           ,
-              {[Date].[Calendar].CurrentMember}
-            * 
-              {[Customer].[Customer Geography].CurrentMember}
-          )
-         ,
-            {[Date].[Calendar].CurrentMember}
-          * 
-            {[Customer].[Customer Geography].DefaultMember}
+            [Date].[Calendar].CurrentMember IS [Date].[Calendar].[Calendar Year].&[2006],
+            Generate
+            (
+              [SelectedCountries],
+              {[Date].[Calendar].CurrentMember} * {[Customer].[Customer Geography].CurrentMember}
+            ),
+            {[Date].[Calendar].CurrentMember} * {[Customer].[Customer Geography].DefaultMember}
         )
       )
-    }
-  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+    } DIMENSION PROPERTIES [PARENT_UNIQUE_NAME] ON 1
 FROM [Adventure Works];

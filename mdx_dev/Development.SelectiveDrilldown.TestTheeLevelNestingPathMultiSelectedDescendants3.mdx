@@ -1,4 +1,5 @@
 WITH 
+  -- Sets defining drilldown levels for Customer Geography by country
   SET [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_1] AS 
     {
       DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
@@ -7,14 +8,7 @@ WITH
     {
       DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
     } 
-  SET [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_3] AS 
-    {
-      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
-    } 
-  SET [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_4] AS 
-    {
-      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
-    } 
+  -- Product Categories drilldowns for various categories recursively
   SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_1] AS 
     {
       DrillDownMember
@@ -26,114 +20,13 @@ WITH
        ,RECURSIVE
       )
     } 
-  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_2] AS 
-    {
-      DrillDownMember
-      (
-        {
-          DrillDownLevel({[Product].[Product Categories].DefaultMember})
-        }
-       ,{[Product].[Product Categories].[Category].&[1]}
-       ,RECURSIVE
-      )
-    } 
-  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_3] AS 
-    {
-      DrillDownMember
-      (
-        {
-          DrillDownLevel({[Product].[Product Categories].DefaultMember})
-        }
-       ,{[Product].[Product Categories].[Category].&[1]}
-       ,RECURSIVE
-      )
-    } 
-  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_4] AS 
-    {
-      DrillDownMember
-      (
-        {
-          DrillDownLevel({[Product].[Product Categories].DefaultMember})
-        }
-       ,{[Product].[Product Categories].[Category].&[1]}
-       ,RECURSIVE
-      )
-    } 
-  SET [Product.Product Categories.SelectedDrilldown_1_2_5] AS 
-    {
-      [Product].[Product Categories].[Category].&[1]
-     ,[Product].[Product Categories].[Category].&[2]
-    } 
-  SET [Product.Product Categories.SelectedDrilldown_1_2_6] AS 
-    {
-      [Product].[Product Categories].[Category].&[3]
-     ,[Product].[Product Categories].[Category].&[4]
-    } 
-  SET [Product.Product Categories.SelectedDrilldown_1_2_7] AS 
-    {[Product].[Product Categories].[Category].&[4]} 
-  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_8] AS 
-    {
-      DrillDownMember
-      (
-        {
-          DrillDownLevel({[Product].[Product Categories].DefaultMember})
-        }
-       ,{[Product].[Product Categories].[Category].&[1]}
-       ,RECURSIVE
-      )
-    } 
-  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_9] AS 
-    {
-      DrillDownMember
-      (
-        {
-          DrillDownLevel({[Product].[Product Categories].DefaultMember})
-        }
-       ,{[Product].[Product Categories].[Category].&[1]}
-       ,RECURSIVE
-      )
-    } 
-  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_10] AS 
-    {
-      DrillDownMember
-      (
-        {
-          DrillDownLevel({[Product].[Product Categories].DefaultMember})
-        }
-       ,{[Product].[Product Categories].[Category].&[1]}
-       ,RECURSIVE
-      )
-    } 
-  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_11] AS 
-    {
-      DrillDownMember
-      (
-        {
-          DrillDownLevel({[Product].[Product Categories].DefaultMember})
-        }
-       ,{[Product].[Product Categories].[Category].&[1]}
-       ,RECURSIVE
-      )
-    } 
+  -- Measure for calculating internet order quantity
   SET [Measures.Selection_0_0] AS 
     {[Measures].[Internet Order Quantity]} 
+  -- Drilldown for Calendar Year
   SET [DrillDownLevel.Date.Calendar.Selection_1_0] AS 
     {DrillDownLevel({[Date].[Calendar].DefaultMember})} 
-  SET [DrillDownLevel.Customer.Customer Geography.Selection_1_1] AS 
-    {
-      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
-    } 
-  SET [DrillDownLevel.Product.Product Categories.Selection_1_2] AS 
-    {
-      DrillDownMember
-      (
-        {
-          DrillDownLevel({[Product].[Product Categories].DefaultMember})
-        }
-       ,{[Product].[Product Categories].[Category].&[1]}
-       ,RECURSIVE
-      )
-    } 
+  -- Main query selection including a complex nested IIF structure to handle multiple geographical and product category scenarios
 SELECT 
   {[Measures.Selection_0_0]}
   DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
@@ -305,7 +198,7 @@ SELECT
                         [Customer].[Customer Geography].[Country].&[United States]
                      ,Generate
                       (
-                        [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_9]
+                        [DrillDownLevel.Product Product Categories.SelectedDrilldown_1_2_9]
                        ,
                           {[Date].[Calendar].CurrentMember}*
                           {[Customer].[Customer Geography].CurrentMember}*
@@ -337,7 +230,7 @@ SELECT
                         [Customer].[Customer Geography].[Country].&[France]
                      ,Generate
                       (
-                        [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_10]
+                        [DrillDownLevel.Product Product Categories.SelectedDrilldown_1_2_10]
                        ,
                           {[Date].[Calendar].CurrentMember}*
                           {[Customer].[Customer Geography].CurrentMember}*
@@ -350,7 +243,7 @@ SELECT
                           [Customer].[Customer Geography].[Country].&[Australia]
                        ,Generate
                         (
-                          [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_11]
+                          [DrillDownLevel.Product Product Categories.SelectedDrilldown_1_2_11]
                          ,
                             {[Date].[Calendar].CurrentMember}*
                             {[Customer].[Customer Geography].CurrentMember}*

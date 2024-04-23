@@ -1,137 +1,83 @@
 WITH 
-  SET [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_1] AS 
-    {
-      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
-    } 
-  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_1] AS 
-    {
-      DrillDownMember
+  -- Define a set for drilling down on Customer Geography with the default member
+  SET [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown] AS 
+    {DrillDownLevel({[Customer].[Customer Geography].DefaultMember})}
+  
+  -- Define a set for drilling down on Product Categories to the 'Category' level and recursively
+  SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown] AS 
+    {DrillDownMember
       (
-        {
-          DrillDownLevel({[Product].[Product Categories].DefaultMember})
-        }
-       ,{[Product].[Product Categories].[Category].&[1]}
-       ,RECURSIVE
-      )
-    } 
-  SET [DrillDownLevel.Reseller.Reseller Type.SelectedDrilldown_1_3_1] AS 
+        {DrillDownLevel({[Product].[Product Categories].DefaultMember})},
+        {[Product].[Product Categories].[Category].&[1]},
+        RECURSIVE
+      )}
+  
+  -- Define a set for drilling down on Reseller Type with the default member
+  SET [DrillDownLevel.Reseller.Reseller Type.SelectedDrilldown] AS 
     {DrillDownLevel({[Reseller].[Reseller Type].DefaultMember})} 
-  SET [DrillDownLevel.Promotion.Promotions.SelectedDrilldown_1_4_1] AS 
+  
+  -- Define a set for drilling down on Promotions with the default member
+  SET [DrillDownLevel.Promotion.Promotions.SelectedDrilldown] AS 
     {DrillDownLevel({[Promotion].[Promotions].DefaultMember})} 
-  SET [Measures.Selection_0_0] AS 
+  
+  -- Define a measure for Internet Order Quantity
+  SET [Measures.Selected] AS 
     {[Measures].[Internet Order Quantity]} 
-  SET [DrillDownLevel.Date.Calendar.Selection_1_0] AS 
-    {DrillDownLevel({[Date].[Calendar].DefaultMember})} 
-  SET [DrillDownLevel.Customer.Customer Geography.Selection_1_1] AS 
-    {
-      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
-    } 
-  SET [DrillDownLevel.Product.Product Categories.Selection_1_2] AS 
-    {
-      DrillDownMember
-      (
-        {
-          DrillDownLevel({[Product].[Product Categories].DefaultMember})
-        }
-       ,{[Product].[Product Categories].[Category].&[1]}
-       ,RECURSIVE
-      )
-    } 
-  SET [DrillDownLevel.Reseller.Reseller Type.Selection_1_3] AS 
-    {DrillDownLevel({[Reseller].[Reseller Type].DefaultMember})} 
-  SET [DrillDownLevel.Promotion.Promotions.Selection_1_4] AS 
-    {DrillDownLevel({[Promotion].[Promotions].DefaultMember})} 
+
 SELECT 
-  {[Measures.Selection_0_0]}
-  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
- ,NON EMPTY 
+  -- Select defined measure
+  {[Measures.Selected]} DIMENSION PROPERTIES [PARENT_UNIQUE_NAME] ON 0,
+  -- Select non empty combinations of members based on certain conditions
+  NON EMPTY 
     {
       Generate
       (
-        [DrillDownLevel.Date.Calendar.Selection_1_0]
-       ,IIF
+        [DrillDownLevel.Date.Calendar.SelectedDrilldown],
+        IIF
         (
-            [Date].[Calendar].CurrentMember
-          IS 
-            [Date].[Calendar].[Calendar Year].&[2007]
-         ,Generate
-          (
-            [Date].[Calendar].CurrentMember
-           ,Generate
+            [Date].[Calendar].CurrentMember IS [Date].[Calendar].[Calendar Year].&[2007],
+            Generate
             (
-              [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_1]
-             ,IIF
+              [Date].[Calendar].CurrentMember,
+              Generate
               (
-                  [Customer].[Customer Geography].CurrentMember
-                IS 
-                  [Customer].[Customer Geography].[Country].&[Germany]
-               ,Generate
+                [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown],
+                IIF
                 (
-                  [Customer].[Customer Geography].CurrentMember
-                 ,Generate
-                  (
-                    [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_1]
-                   ,IIF
+                    [Customer].[Customer Geography].CurrentMember IS [Customer].[Customer Geography].[Country].&[Germany],
+                    Generate
                     (
-                        [Product].[Product Categories].CurrentMember
-                      IS 
-                        [Product].[Product Categories].[Subcategory].&[1]
-                     ,Generate
+                      [Customer].[Customer Geography].CurrentMember,
+                      Generate
                       (
-                        [Product].[Product Categories].CurrentMember
-                       ,Generate
+                        [DrillDownLevel.Product.Product Categories.SelectedDrilldown],
+                        IIF
                         (
-                          [DrillDownLevel.Reseller.Reseller Type.SelectedDrilldown_1_3_1]
-                         ,IIF
-                          (
-                              [Reseller].[Reseller Type].CurrentMember
-                            IS 
-                              [Reseller].[Reseller Type].[Business Type].&[Warehouse]
-                           ,Generate
+                            [Product].[Product Categories].CurrentMember IS [Product].[Product Categories].[Subcategory].&[1],
+                            Generate
                             (
-                              [DrillDownLevel.Promotion.Promotions.SelectedDrilldown_1_4_1]
-                             ,
-                                {[Date].[Calendar].CurrentMember}*
-                                {[Customer].[Customer Geography].CurrentMember}*
-                                {[Product].[Product Categories].CurrentMember}*
-                                {[Reseller].[Reseller Type].CurrentMember}*
-                                {[Promotion].[Promotions].CurrentMember}
-                            )
-                           ,
-                              {[Date].[Calendar].CurrentMember}*
-                              {[Customer].[Customer Geography].CurrentMember}*
-                              {[Product].[Product Categories].CurrentMember}*
-                              {[Reseller].[Reseller Type].CurrentMember}*
-                              {[Promotion].[Promotions].DefaultMember}
-                          )
+                              [Product].[Product Categories].CurrentMember,
+                              Generate
+                              (
+                                [DrillDownLevel.Reseller.Reseller Type.SelectedDrilldown],
+                                IIF
+                                (
+                                    [Reseller].[Reseller Type].CurrentMember IS [Reseller].[Reseller Type].[Business Type].&[Warehouse],
+                                    {[Date].[Calendar].CurrentMember} * {[Customer].[Customer Geography].CurrentMember} * {[Product].[Product Categories].CurrentMember} * {[Reseller].[Reseller Type].CurrentMember} * {[Promotion].[Promotions].CurrentMember},
+                                    {[Date].[Calendar].CurrentMember} * {[Customer].[Customer Geography].CurrentMember} * {[Product].[Product Categories].CurrentMember} * {[Reseller].[Reseller Type].CurrentMember} * {[Promotion].[Promotions].DefaultMember}
+                                )
+                              )
+                            ),
+                            {[Date].[Calendar].CurrentMember} * {[Customer].[Customer Geography].CurrentMember} * {[Product].[Product Categories].CurrentMember} * {[Reseller].[Reseller Type].DefaultMember} * {[Promotion].[Promotions].DefaultMember}
                         )
                       )
-                     ,
-                        {[Date].[Calendar].CurrentMember}*
-                        {[Customer].[Customer Geography].CurrentMember}*
-                        {[Product].[Product Categories].CurrentMember}*
-                        {[Reseller].[Reseller Type].DefaultMember}*
-                        {[Promotion].[Promotions].DefaultMember}
-                    )
-                  )
+                    ),
+                    {[Date].[Calendar].CurrentMember} * {[Customer].[Customer Geography].CurrentMember} * {[Product].[Product Categories].DefaultMember} * {[Reseller].[Reseller Type].DefaultMember} * {[Promotion].[Promotions].DefaultMember}
                 )
-               ,
-                  {[Date].[Calendar].CurrentMember}*
-                  {[Customer].[Customer Geography].CurrentMember}*
-                  {[Product].[Product Categories].DefaultMember}*
-                  {[Reseller].[Reseller Type].DefaultMember}*
-                  {[Promotion].[Promotions].DefaultMember}
               )
-            )
-          )
-         ,
-            {[Date].[Calendar].CurrentMember}*
-            {[Customer].[Customer Geography].DefaultMember}*
-            {[Product].[Product Categories].DefaultMember}*
-            {[Reseller].[Reseller Type].DefaultMember}*
-            {[Promotion].[Promotions].DefaultMember}
+            ),
+            {[Date].[Calendar].CurrentMember} * {[Customer].[Customer Geography].DefaultMember} * {[Product].[Product Categories].DefaultMember} * {[Reseller].[Reseller Type].DefaultMember} * {[Promotion].[Promotions].DefaultMember}
         )
       )
-    }
-  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
+    } DIMENSION PROPERTIES [PARENT_UNIQUE_NAME] ON 1
 FROM [Adventure Works];

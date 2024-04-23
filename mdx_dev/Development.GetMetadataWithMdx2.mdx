@@ -1,82 +1,52 @@
-// public DbSchemaDto GetSchema(DDInt.IUdmConnection aUdmConnection)
-SELECT [CUBE_NAME]
-	,[CUBE_CAPTION]
+-- Retrieves cube names and captions from the schema where the source is identified as '1'.
+-- This function is useful for listing all cubes that originate from a certain source within a system.
+SELECT [CUBE_NAME], [CUBE_CAPTION]
 FROM $SYSTEM.MDSchema_Cubes
-WHERE CUBE_SOURCE = 1
+WHERE CUBE_SOURCE = 1;
 
-
-// public DbCubeSchemaDto GetCubeSchema(DDInt.IUdmConnection aUdmConnection, string aCubeUniqueName)
-SELECT [MEASUREGROUP_NAME]
-	,[MEASUREGROUP_CAPTION]
+-- Fetches measure group names and captions from the 'AdventureWorksDW' cube named 'Adventure Works'.
+-- Useful for understanding the organization and categorization of data within the cube.
+SELECT [MEASUREGROUP_NAME], [MEASUREGROUP_CAPTION]
 FROM $SYSTEM.MDSchema_MeasureGroups
-WHERE [CATALOG_NAME] = 'AdventureWorksDW'
-	AND [CUBE_NAME] = 'Adventure Works'
+WHERE [CATALOG_NAME] = 'AdventureWorksDW' AND [CUBE_NAME] = 'Adventure Works';
 
-// public DbCubeSchemaDto GetCubeSchema(DDInt.IUdmConnection aUdmConnection, string aCubeUniqueName)
-SELECT [DIMENSION_NAME]
-	,[DIMENSION_CAPTION]
-	,[DIMENSION_UNIQUE_NAME]
+-- Retrieves dimension details for the 'Adventure Works' cube in the 'AdventureWorksDW' catalog.
+-- Provides essential metadata about dimensions, aiding in data analysis and reporting.
+SELECT [DIMENSION_NAME], [DIMENSION_CAPTION], [DIMENSION_UNIQUE_NAME]
 FROM $SYSTEM.MDSchema_Dimensions
-WHERE [CATALOG_NAME] = 'AdventureWorksDW'
-	AND [CUBE_NAME] = 'Adventure Works'
+WHERE [CATALOG_NAME] = 'AdventureWorksDW' AND [CUBE_NAME] = 'Adventure Works';
 
-// public DbCubeSchemaDto GetCubeSchema(DDInt.IUdmConnection aUdmConnection, string aCubeUniqueName)
-SELECT [HIERARCHY_NAME]
-	,[HIERARCHY_CAPTION]
-	,[HIERARCHY_UNIQUE_NAME]
-	,[DEFAULT_MEMBER]
-	,[ALL_MEMBER]
-	,[HIERARCHY_ORIGIN]
+-- Obtains hierarchy details within a specific cube, here 'Adventure Works' from 'AdventureWorksDW'.
+-- This query assists in navigating through different levels of data granularity.
+SELECT [HIERARCHY_NAME], [HIERARCHY_CAPTION], [HIERARCHY_UNIQUE_NAME], [DEFAULT_MEMBER], [ALL_MEMBER], [HIERARCHY_ORIGIN]
 FROM $SYSTEM.MDSchema_Hierarchies
-WHERE [CATALOG_NAME] = 'AdventureWorksDW'
-	AND [CUBE_NAME] = 'Adventure Works'
+WHERE [CATALOG_NAME] = 'AdventureWorksDW' AND [CUBE_NAME] = 'Adventure Works';
 
-// public DbHierarchySchemaDto GetHierarchySchema(DDInt.IUdmConnection aUdmConnection, string aHierarchyUniqueName)
-SELECT [LEVEL_NAME]
-	,[LEVEL_CAPTION]
-	,[LEVEL_UNIQUE_NAME]
-	,[LEVEL_NUMBER]
+-- Provides level details for a specific hierarchy, '[Product].[Product Categories]', within the 'AdventureWorksDW' catalog.
+-- Useful for detailed analyses at various granularity levels within the product hierarchy.
+SELECT [LEVEL_NAME], [LEVEL_CAPTION], [LEVEL_UNIQUE_NAME], [LEVEL_NUMBER]
 FROM $SYSTEM.MDSchema_Levels
-WHERE [CATALOG_NAME] = 'AdventureWorksDW'
-	// AND [CUBE_NAME] = 'Adventure Works'
-	AND [HIERARCHY_	UNIQUE_NAME] = '[Product].[Product Categories]'
+WHERE [CATALOG_NAME] = 'AdventureWorksDW' AND [HIERARCHY_UNIQUE_NAME] = '[Product].[Product Categories]';
 
+-- Lists all user-defined hierarchy levels in the 'Adventure Works' cube, sorted by dimension unique name.
+-- This helps in understanding the data structure and user-defined customizations.
+SELECT [CATALOG_NAME] AS [DATABASE], CUBE_NAME AS [CUBE], [DIMENSION_UNIQUE_NAME] AS [DIMENSION], [HIERARCHY_UNIQUE_NAME] AS [HIERARCHY], 
+       LEVEL_CAPTION AS [LEVEL], [LEVEL_NAME], [LEVEL_NUMBER] AS [LEVEL NUMBER], [LEVEL_NAME_SQL_COLUMN_NAME] AS [NAME_COLUMN], 
+       [LEVEL_UNIQUE_NAME_SQL_COLUMN_NAME] AS [UNIQUE_NAME_COLUMN], [LEVEL_KEY_SQL_COLUMN_NAME] AS [KEY_COLUMN]
+FROM $SYSTEM.MDSchema_Levels
+WHERE CUBE_NAME = 'Adventure Works' AND level_origin = 1
+ORDER BY [DIMENSION_UNIQUE_NAME];
 
---All Levels of Hierarchies (user-defined) 
-SELECT [CATALOG_NAME] AS [DATABASE]
-	,CUBE_NAME AS [CUBE]
-	,[DIMENSION_UNIQUE_NAME] AS [DIMENSION]
-	,[HIERARCHY_UNIQUE_NAME] AS [HIERARCHY]
-	,LEVEL_CAPTION AS [LEVEL]
-	,[LEVEL_NAME]
-	,[LEVEL_NUMBER] AS [LEVEL NUMBER]
-	,[LEVEL_NAME_SQL_COLUMN_NAME] AS [NAME_COLUMN]
-	,[LEVEL_UNIQUE_NAME_SQL_COLUMN_NAME] AS [UNIQUE_NAME_COLUMN]
-	,[LEVEL_KEY_SQL_COLUMN_NAME] AS [KEY_COLUMN]
-FROM $SYSTEM.MDSchema_levels
-WHERE CUBE_NAME = 'Adventure Works'
-	AND level_origin = 1
-ORDER BY [DIMENSION_UNIQUE_NAME]
- 
---Calculated Measures/Members 
-SELECT [MEMBER_UNIQUE_NAME] AS [CALCULATED_MEASURE]
-	,[MEMBER_CAPTION] AS [CAPTION]
-	,[EXPRESSION]
+-- Retrieves calculated measures or members within the 'Adventure Works' cube, specifically identifying formula-based members.
+-- Essential for understanding custom calculations that augment the cube's analytical capabilities.
+SELECT [MEMBER_UNIQUE_NAME] AS [CALCULATED_MEASURE], [MEMBER_CAPTION] AS [CAPTION], [EXPRESSION]
 FROM $SYSTEM.MDSCHEMA_MEMBERS
-WHERE CUBE_NAME = 'Adventure Works'
-	AND [MEMBER_TYPE] = 4 --MDMEMBER_TYPE_FORMULA
- 
---Dimension Usage/Fact-Dimension Bus Matrix 
-SELECT [MEASUREGROUP_NAME] AS [MEASUREGROUP]
-	,[MEASUREGROUP_CARDINALITY]
-	,[DIMENSION_UNIQUE_NAME] AS [DIM]
-	,[DIMENSION_GRANULARITY] AS [DIM_KEY]
-	,[DIMENSION_CARDINALITY]
-	,[DIMENSION_IS_VISIBLE] AS [IS_VISIBLE]
-	,[DIMENSION_IS_FACT_DIMENSION] AS [IS_FACT_DIM]
+WHERE CUBE_NAME = 'Adventure Works' AND [MEMBER_TYPE] = 4; --MDMEMBER_TYPE_FORMULA
+
+-- Provides a matrix of dimension usage within measure groups for the 'Adventure Works' cube.
+-- Useful for analyzing relationships and dependencies between facts and dimensions.
+SELECT [MEASUREGROUP_NAME] AS [MEASUREGROUP], [MEASUREGROUP_CARDINALITY], [DIMENSION_UNIQUE_NAME] AS [DIM], 
+       [DIMENSION_GRANULARITY] AS [DIM_KEY], [DIMENSION_CARDINALITY], [DIMENSION_IS_VISIBLE] AS [IS_VISIBLE], 
+       [DIMENSION_IS_FACT_DIMENSION] AS [IS_FACT_DIM]
 FROM $SYSTEM.MDSCHEMA_MEASUREGROUP_DIMENSIONS
-WHERE [CUBE_NAME] = 'Adventure Works'
-	AND [MEASUREGROUP_NAME] = 'Internet Sales'
-
-
-
+WHERE [CUBE_NAME] = 'Adventure Works' AND [MEASUREGROUP_NAME] = 'Internet Sales';

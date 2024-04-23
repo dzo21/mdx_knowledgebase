@@ -1,0 +1,26 @@
+-- Refactors and documents the original MDX query to improve readability, adds docstrings and comments.
+
+-- Defines calculated members for extracting various properties from the 'Date' hierarchy.
+WITH 
+MEMBER [Measures].[CHILDREN_CARDINALITY] AS AXIS(1).Item(0).Item(0).Hierarchy.CHILDREN_CARDINALITY
+MEMBER [Measures].[LEVEL_NUMBER] AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_NUMBER
+MEMBER [Measures].[MEMBER_TYPE] AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_TYPE
+MEMBER [Measures].[LEVEL_UNIQUE_NAME] AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_UNIQUE_NAME
+MEMBER [Measures].[MEMBER_CAPTION] AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_CAPTION
+MEMBER [Measures].[MEMBER_NAME] AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_NAME
+MEMBER [Measures].[MEMBER_UNIQUE_NAME] AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_UNIQUE_NAME
+MEMBER [Measures].[PARENT_UNIQUE_NAME] AS AXIS(1).Item(0).Item(0).Hierarchy.PARENT_UNIQUE_NAME
+
+-- Selects the defined measures and displays them alongside all members of the 'Date' hierarchy from the 'Adventure Works' cube.
+SELECT {
+    [Measures].[CHILDREN_CARDINALITY],
+    [Measures].[LEVEL_NUMBER],
+    [Measures].[MEMBER_TYPE],
+    [Measures].[LEVEL_UNIQUE_NAME],
+    [Measures].[MEMBER_CAPTION],
+    [Measures].[MEMBER_NAME],
+    [Measures].[MEMBER_UNIQUE_NAME],
+    [Measures].[PARENT_UNIQUE_NAME]
+} ON COLUMNS,
+[Date].[Date].AllMembers ON ROWS
+FROM [Adventure Works]

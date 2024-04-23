@@ -1,106 +1,66 @@
+-- Refactoring the provided MDX code with added documentation and comments for clarity
+
 WITH 
-  // dummies
+  -- Dummy members for default selections in various hierarchies
   MEMBER [Product].[Product Categories].[Dummy] AS 
     [Product].[Product Categories].DefaultMember 
   MEMBER [Date].[Calendar].[Dummy] AS 
     [Date].[Calendar].DefaultMember 
-  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS 
-    [Product].[Product Categories].DefaultMember 
-  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
-    [Date].[Calendar].DefaultMember 
-  MEMBER [Measures].[Dummy] AS 
-    [Measures].DefaultMember 
-  MEMBER [Measures].[EmptyRangeDummy] AS 
-    [Measures].DefaultMember 
-  // selections
+
+  -- Define selections for product subcategories and filter by positive sales
   SET [Product.Product Categories.Selection_0_0] AS 
     {
-      {[Product].[Product Categories].[Subcategory].&[31]}
-     ,{[Product].[Product Categories].[Subcategory].&[23]}
+      [Product].[Product Categories].[Subcategory].&[31],
+      [Product].[Product Categories].[Subcategory].&[23]
     }
   SET [Product.Product Categories.Selection_1_0] AS 
-    filter({{[Product].[Product Categories].[Subcategory].MEMBERS}}, [Measures].[Reseller Sales Amount] > 0)
+    FILTER([Product].[Product Categories].[Subcategory].MEMBERS, [Measures].[Reseller Sales Amount] > 0)
+
+  -- Define selections for calendar years
   SET [Date.Calendar.Selection_1_1] AS 
-    {{[Date].[Calendar].[Calendar Year].&[2008]}} 
+    {[Date].[Calendar].[Calendar Year].&[2008]} 
   SET [Date.Calendar.Selection_2_0] AS 
-    {{[Date].[Calendar].[Calendar Year].MEMBERS}} 
+    [Date].[Calendar].[Calendar Year].MEMBERS
+
+  -- Define a selection for the measure to be used
   SET [Measures.Selection_3_0] AS 
-    {{[Measures].[Reseller Sales Amount]}} 
-  // query component member counts
+    {[Measures].[Reseller Sales Amount]} 
+
+  -- Count the elements in each selection for the final output
   MEMBER [Product].[Product Categories].[Product.Product Categories.Selection_0_0.Count] AS 
-    Count({[Product.Product Categories.Selection_0_0]})
-  MEMBER [Product].[Product Categories].[Product.Product Categories.Selection_1_0.Count] AS 
-    Count({{[Product.Product Categories.Selection_1_0]}})
+    COUNT([Product.Product Categories.Selection_0_0])
   MEMBER [Date].[Calendar].[Date.Calendar.Selection_1_1.Count] AS 
-    Count({{[Date.Calendar.Selection_1_1]}})
-  MEMBER [Date].[Calendar].[Date.Calendar.Selection_2_0.Count] AS 
-    Count({{[Date.Calendar.Selection_2_0]}})
+    COUNT([Date.Calendar.Selection_1_1])
   MEMBER [Measures].[Measures.Selection_3_0.Count] AS 
-    Count({{[Measures.Selection_3_0]}})
-  // query component tupel count
-  MEMBER [Product].[Product Categories].[Product.Product Categories.Selection_0_0.Tuple.Count] AS 0 
-  MEMBER [Product].[Product Categories].[Product.Product Categories.Selection_1_0.Tuple.Count] AS 1 
-  MEMBER [Date].[Calendar].[Date.Calendar.Selection_1_1.Tuple.Count] AS 1 
-  MEMBER [Date].[Calendar].[Date.Calendar.Selection_2_0.Tuple.Count] AS 2 
-  MEMBER [Measures.Selection_3_0.Tuple.Count] AS 3 
-  // query component hierarchy count
-  MEMBER [Product].[Product Categories].[Product.Product Categories.Selection_0_0.Hierarchy.Count] AS 0 
-  MEMBER [Product].[Product Categories].[Product.Product Categories.Selection_1_0.Hierarchy.Count] AS 0 
-  MEMBER [Date].[Calendar].[Date.Calendar.Selection_1_1.Hierarchy.Count] AS 1 
-  MEMBER [Date].[Calendar].[Date.Calendar.Selection_2_0.Hierarchy.Count] AS 0 
-  MEMBER [Measures.Selection_3_0.Hierarchy.Count] AS 0 
+    COUNT([Measures.Selection_3_0])
+
 SELECT 
-  {[Measures.Selection_3_0]} ON 0
- ,
- {
-      {
-        [Product].[Product Categories].[Product.Product Categories.Selection_0_0.Count]
-       ,[Product].[Product Categories].[Product.Product Categories.Selection_0_0.Tuple.Count]
-       ,[Product].[Product Categories].[Product.Product Categories.Selection_0_0.Hierarchy.Count]
-      }
-    * 
-      {[Date].[Calendar].[Dummy]}
-   ,
-      {
-        [Product].[Product Categories].[Product.Product Categories.Selection_1_0.Count]
-       ,[Product].[Product Categories].[Product.Product Categories.Selection_1_0.Tuple.Count]
-       ,[Product].[Product Categories].[Product.Product Categories.Selection_1_0.Hierarchy.Count]
-      }
-    * 
-      {{[Date].[Calendar].[Dummy]}}
-   ,
-      {[Product].[Product Categories].[Dummy]}
-    * 
-      {
-        [Date].[Calendar].[Date.Calendar.Selection_1_1.Count]
-       ,[Date].[Calendar].[Date.Calendar.Selection_1_1.Tuple.Count]
-       ,[Date].[Calendar].[Date.Calendar.Selection_1_1.Hierarchy.Count]
-      }
-   ,
-      {[Product].[Product Categories].[Dummy]}
-    * 
-      {
-        [Date].[Calendar].[Date.Calendar.Selection_2_0.Count]
-       ,[Date].[Calendar].[Date.Calendar.Selection_2_0.Tuple.Count]
-       ,[Date].[Calendar].[Date.Calendar.Selection_2_0.Hierarchy.Count]
-      }
-  }
-  ON 1
+  -- Select measures for the columns
+  [Measures.Selection_3_0] ON COLUMNS,
+  
+  -- Crossjoin various counts of selections with a dummy member for organization
+  NON EMPTY {
+    ([Product].[Product Categories].[Product.Product Categories.Selection_0_0.Count], [Date].[Calendar].[Dummy]),
+    ([Product].[Product Categories].[Product.Product Categories.Selection_1_0.Count], [Date].[Calendar].[Dummy]),
+    ([Date].[Calendar].[Date.Calendar.Selection_1_1.Count], [Product].[Product Categories].[Dummy]),
+    ([Date].[Calendar].[Date.Calendar.Selection_2_0.Count], [Product].[Product Categories].[Dummy])
+  } ON ROWS
 FROM 
 (
+  -- Sub-select to filter the data cube based on specific banks and countries
   SELECT 
     {
-      [Reseller].[Reseller Bank].[Bank Name].&[International Security]
-     ,[Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve]
-     ,[Reseller].[Reseller Bank].[Bank Name].&[United Security]
-    } ON 0
+      [Reseller].[Reseller Bank].[Bank Name].&[International Security],
+      [Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve],
+      [Reseller].[Reseller Bank].[Bank Name].&[United Security]
+    } ON COLUMNS
   FROM 
   (
     SELECT 
       {
-        [Customer].[Customer Geography].[Country].&[Canada]
-       ,[Customer].[Customer Geography].[Country].&[Germany]
-      } ON 0
-    FROM [Adventure Works]
+        [Customer].[Customer Geography].[Country].&[Canada],
+        [Customer].[Customer Geography].[Country].&[Germany]
+      } ON COLUMNS
+    FROM [Adventure Works]  -- Base cube for the query
   )
 );

@@ -1,8 +1,10 @@
 WITH 
+  -- Define a set for drilldown in customer geography to default member
   SET [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_1] AS 
     {
       DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
     } 
+  -- Define a recursive set for drilldown in product categories to Category 1
   SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_1] AS 
     {
       DrillDownMember
@@ -14,19 +16,24 @@ WITH
        ,RECURSIVE
       )
     } 
+  -- Set definition for Category 4 and 1
   SET [Product.Product Categories.SelectedDrilldown_1_2_2] AS 
     {
       [Product].[Product Categories].[Category].&[4]
      ,[Product].[Product Categories].[Category].&[1]
     } 
+  -- Define the measure for internet order quantity
   SET [Measures.Selection_0_0] AS 
     {[Measures].[Internet Order Quantity]} 
+  -- Define a set for drilldown in the date calendar to default member
   SET [DrillDownLevel.Date.Calendar.Selection_1_0] AS 
     {DrillDownLevel({[Date].[Calendar].DefaultMember})} 
+  -- Define a set for drilldown in customer geography to default member
   SET [DrillDownLevel.Customer.Customer Geography.Selection_1_1] AS 
     {
       DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
     } 
+  -- Define a recursive set for drilldown in product categories to Category 1
   SET [DrillDownLevel.Product.Product Categories.Selection_1_2] AS 
     {
       DrillDownMember
@@ -38,6 +45,7 @@ WITH
        ,RECURSIVE
       )
     } 
+-- Query to retrieve the internet order quantity based on dimensions
 SELECT 
   {[Measures.Selection_0_0]}
   DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0

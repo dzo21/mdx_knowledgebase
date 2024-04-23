@@ -1,89 +1,46 @@
 WITH 
-  // dummies
-  MEMBER [Product].[Product Categories].[Dummy] AS 
-    [Product].[Product Categories].DefaultMember 
-	// auto exist hierarchy
-	MEMBER [Product].[Category].[Dummy] AS 
-    [Product].[Category].DefaultMember 
-  MEMBER [Date].[Calendar].[Dummy] AS 
-    [Date].[Calendar].DefaultMember 
-  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS 
-    [Product].[Product Categories].DefaultMember 
-	MEMBER [Product].[Category].[EmptyRangeDummy] AS 
-    [Product].[Category].DefaultMember 
-  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
-    [Date].[Calendar].DefaultMember 
-  MEMBER [Measures].[Dummy] AS 
-    [Measures].DefaultMember 
-  MEMBER [Measures].[EmptyRangeDummy] AS 
-    [Measures].DefaultMember 
-  // selections
-  SET [Product.Product Categories.Selection_0_0] AS 
-    {
-      // belongs to bike category with must be return from ssas
-	  {[Product].[Product Categories].[Product].&[573]}
-     , {[Product].[Product Categories].[Product].&[574]}
-	 , {[Product].[Product Categories].[Product].&[564]}
-	 // this elements dont belong to bikes with elements must be droped
-	 , {[Product].[Product Categories].[Product].&[329]}
-	 , {[Product].[Product Categories].[Product].&[353]}
-    } 
-	SET [Product.Category.Selection_0_1] AS 
-    {
-      {[Product].[Category].&[1]}
-    } 
-  SET [Product.Product Categories.Selection_1_0] AS 
-   {
-      // belongs to bike category with must be return from ssas
-	  {[Product].[Product Categories].[Product].&[568]}
-     , {[Product].[Product Categories].[Product].&[570]}
-	 , {[Product].[Product Categories].[Product].&[571]}
-	 , {[Product].[Product Categories].[Product].&[566]}
-	 // this elements dont belong to bikes with elements must be droped
-	 , {[Product].[Product Categories].[Product].&[461]}
-	 , {[Product].[Product Categories].[Product].&[460]}
-	 , {[Product].[Product Categories].[Product].&[459]}
-    } 
-  SET [Date.Calendar.Selection_1_1] AS 
-    {{[Date].[Calendar].[Calendar Year].&[2008]}} 
-  SET [Date.Calendar.Selection_2_0] AS 
-    {{[Date].[Calendar].[Calendar Year].MEMBERS}} 
-  SET [Measures.Selection_3_0] AS 
-    {{[Measures].[Reseller Sales Amount], [Measures].[Internet Tax Amount], [Measures].[Internet Order Quantity]}} 
+  // Dummy members to handle defaults and empty ranges
+  MEMBER [Product].[Product Categories].[Dummy] AS [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Calendar].[Dummy] AS [Date].[Calendar].DefaultMember 
+  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS [Product].[Product Categories].DefaultMember 
+  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS [Date].[Calendar].DefaultMember 
+  MEMBER [Measures].[Dummy] AS [Measures].DefaultMember 
+  MEMBER [Measures].[EmptyRangeDummy] AS [Measures].DefaultMember 
+  // Selection sets for specific product categories and measures
+  SET [Product.Product Categories.Selection_0_0] AS {
+    {[Product].[Product Categories].[Subcategory].&[31]}, 
+    {[Product].[Product Categories].[Subcategory].&[23]}
+  } 
+  SET [Product.Product Categories.Selection_1_0] AS {{[Product].[Product Categories].[Subcategory].MEMBERS}} 
+  SET [Date.Calendar.Selection_1_1] AS {{[Date].[Calendar].[Calendar Year].&[2008]}} 
+  SET [Date.Calendar.Selection_2_0] AS {{[Date].[Calendar].[Calendar Year].MEMBERS}} 
+  SET [Measures.Selection_3_0] AS {
+    {[Measures].[Reseller Sales Amount], [Measures].[Internet Tax Amount], [Measures].[Internet Order Quantity]}
+  } 
 SELECT 
-  NON EMPTY {[Measures.Selection_3_0]} ON 0
- ,NON EMPTY {
-      {[Product.Product Categories.Selection_0_0]}
-    * 
-      {[Date].[Calendar].[Dummy]}
-	  * {[Product.Category.Selection_0_1]}
-   ,
-      {[Product.Product Categories.Selection_1_0]}
-    * 
-      {[Date.Calendar.Selection_1_1]}
-	  * {[Product.Category.Selection_0_1]}
-   ,
-      {[Product].[Product Categories].[Dummy]}
-    * 
-      {[Date.Calendar.Selection_2_0]}
-	  * {[Product.Category.Selection_0_1]}
-  } ON 1
+  // Measures and crossjoin of product categories and dates selected for non-empty results
+  NON EMPTY {[Measures.Selection_3_0]} ON COLUMNS,
+  NON EMPTY {
+    {[Product.Product Categories.Selection_0_0]} * {[Date].[Calendar].[Dummy]},
+    {[Product.Product Categories.Selection_1_0]} * {[Date.Calendar.Selection_1_1]},
+    {[Product].[Product Categories].[Dummy]} * {[Date.Calendar.Selection_2_0]}
+  } ON ROWS
 FROM 
 (
+  // Subselect filtering specific banks and countries
   SELECT 
     {
-      [Reseller].[Reseller Bank].[Bank Name].&[International Security]
-     ,[Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve]
-     ,[Reseller].[Reseller Bank].[Bank Name].&[United Security]
-    } ON 0
+      [Reseller].[Reseller Bank].[Bank Name].&[International Security], 
+      [Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve], 
+      [Reseller].[Reseller Bank].[Bank Name].&[United Security]
+    } ON COLUMNS
   FROM 
   (
     SELECT 
       {
-        [Customer].[Customer Geography].[Country].&[Canada]
-       ,[Customer].[Customer Geography].[Country].&[Germany]
-      } ON 0
-    FROM [Adventure Works]
+        [Customer].[Customer Geography].[Country].&[Canada], 
+        [Customer].[Customer Geography].[Country].&[Germany]
+      } ON COLUMNS
+    FROM [Adventure Works] // Base cube for analysis
   )
 );
-

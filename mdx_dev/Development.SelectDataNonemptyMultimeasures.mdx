@@ -1,61 +1,63 @@
 WITH 
-  // dummies
+  // Dummy members for each dimension to ensure that non-applicable combinations are considered
   MEMBER [Product].[Product Categories].[Dummy] AS 
     [Product].[Product Categories].DefaultMember 
   MEMBER [Date].[Calendar].[Dummy] AS 
     [Date].[Calendar].DefaultMember 
-  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS 
-    [Product].[Product Categories].DefaultMember 
-  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
-    [Date].[Calendar].DefaultMember 
   MEMBER [Measures].[Dummy] AS 
     [Measures].DefaultMember 
-  MEMBER [Measures].[EmptyRangeDummy] AS 
-    [Measures].DefaultMember 
-  // selections
+
+  // Selection of specific product subcategories
   SET [Product.Product Categories.Selection_0_0] AS 
     {
       {[Product].[Product Categories].[Subcategory].&[31]}
      ,{[Product].[Product Categories].[Subcategory].&[23]}
     } 
+
+  // Selection of all product subcategories
   SET [Product.Product Categories.Selection_1_0] AS 
     {{[Product].[Product Categories].[Subcategory].MEMBERS}} 
+
+  // Selection of a specific calendar year
   SET [Date.Calendar.Selection_1_1] AS 
     {{[Date].[Calendar].[Calendar Year].&[2008]}} 
+
+  // Selection of all calendar years
   SET [Date.Calendar.Selection_2_0] AS 
     {{[Date].[Calendar].[Calendar Year].MEMBERS}} 
+
+  // Selection of various measures related to sales and orders
   SET [Measures.Selection_3_0] AS 
     {{[Measures].[Reseller Sales Amount], [Measures].[Internet Tax Amount], [Measures].[Internet Order Quantity]}} 
+
 SELECT 
-  NON EMPTY {[Measures.Selection_3_0]} ON 0
- ,NON EMPTY  {
+  NON EMPTY {[Measures.Selection_3_0]} ON 0,
+  NON EMPTY {
       {[Product.Product Categories.Selection_0_0]}
     * 
-      {[Date].[Calendar].[Dummy]}
-   ,
+      {[Date].[Calendar].[Dummy]}, // Combining specific subcategories with a dummy calendar
       {[Product.Product Categories.Selection_1_0]}
     * 
-      {[Date.Calendar.Selection_1_1]}
-   ,
+      {[Date.Calendar.Selection_1_1]}, // Combining all subcategories with a specific year
       {[Product].[Product Categories].[Dummy]}
     * 
-      {[Date.Calendar.Selection_2_0]}
+      {[Date.Calendar.Selection_2_0]} // Combining a dummy product with all years
   } ON 1
 FROM 
 (
   SELECT 
     {
-      [Reseller].[Reseller Bank].[Bank Name].&[International Security]
-     ,[Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve]
-     ,[Reseller].[Reseller Bank].[Bank Name].&[United Security]
+      [Reseller].[Reseller Bank].[Bank Name].&[International Security],
+      [Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve],
+      [Reseller].[Reseller Bank].[Bank Name].&[United Security]
     } ON 0
   FROM 
   (
     SELECT 
       {
-        [Customer].[Customer Geography].[Country].&[Canada]
-       ,[Customer].[Customer Geography].[Country].&[Germany]
+        [Customer].[Customer Geography].[Country].&[Canada],
+        [Customer].[Customer Geography].[Country].&[Germany]
       } ON 0
-    FROM [Adventure Works]
+    FROM [Adventure Works] // Subselecting based on customer country
   )
 );

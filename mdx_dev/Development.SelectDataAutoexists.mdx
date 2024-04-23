@@ -1,91 +1,95 @@
+-- Adding documentation and comments for clarity and maintenance purposes.
+-- This query demonstrates advanced slicing and dicing of a data cube to analyze specific metrics across
+-- various product categories, time frames, and dimensions.
+
 WITH 
-  // dummies
+  -- Dummy members for each hierarchy to handle cases where no specific member is selected.
   MEMBER [Product].[Product Categories].[Dummy] AS 
-    [Product].[Product Categories].DefaultMember 
-  // auto exist hierarchy
+    [Product].[Product Categories].DefaultMember,
   MEMBER [Product].[Category].[Dummy] AS 
-    [Product].[Category].DefaultMember 
+    [Product].[Category].DefaultMember,
   MEMBER [Date].[Calendar].[Dummy] AS 
-    [Date].[Calendar].DefaultMember 
-  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS 
-    [Product].[Product Categories].DefaultMember 
-  MEMBER [Product].[Category].[EmptyRangeDummy] AS 
-    [Product].[Category].DefaultMember 
-  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
-    [Date].[Calendar].DefaultMember 
+    [Date].[Calendar].DefaultMember,
   MEMBER [Measures].[Dummy] AS 
-    [Measures].DefaultMember 
+    [Measures].DefaultMember,
+  
+  -- Dummy members to signify empty selections in the slicers.
+  MEMBER [Product].[Product Categories].[EmptyRangeDummy] AS 
+    [Product].[Product Categories].DefaultMember,
+  MEMBER [Product].[Category].[EmptyRangeDummy] AS 
+    [Product].[Category].DefaultMember,
+  MEMBER [Date].[Calendar].[EmptyRangeDummy] AS 
+    [Date].[Calendar].DefaultMember,
   MEMBER [Measures].[EmptyRangeDummy] AS 
-    [Measures].DefaultMember 
-  // selections
+    [Measures].DefaultMember,
+
+  -- Product sets defining specific products to be analyzed, indicating they belong to the 'Bike' category.
   SET [Product.Product Categories.Selection_0_0] AS 
     {
-      // belongs to bike category with must be return from ssas
-      {[Product].[Product Categories].[Product].&[573]}
-     ,{[Product].[Product Categories].[Product].&[574]}
-     ,{[Product].[Product Categories].[Product].&[564]}
-     ,{[Product].[Product Categories].[Product].&[329]}
-     ,{[Product].[Product Categories].[Product].&[353]}
-    } 
+      [Product].[Product Categories].[Product].&[573],
+      [Product].[Product Categories].[Product].&[574],
+      [Product].[Product Categories].[Product].&[564],
+      [Product].[Product Categories].[Product].&[329],
+      [Product].[Product Categories].[Product].&[353]
+    }, 
   SET [Product.Category.Selection_0_1] AS 
-    {{[Product].[Category].&[1]}} 
+    {[Product].[Category].&[1]}, 
   SET [Product.Product Categories.Selection_1_0] AS 
     {
-      // belongs to bike category with must be return from ssas
-      {[Product].[Product Categories].[Product].&[568]}
-     ,{[Product].[Product Categories].[Product].&[570]}
-     ,{[Product].[Product Categories].[Product].&[571]}
-     ,{[Product].[Product Categories].[Product].&[566]}
-     ,{[Product].[Product Categories].[Product].&[461]}
-     ,{[Product].[Product Categories].[Product].&[460]}
-     ,{[Product].[Product Categories].[Product].&[459]}
-    } 
+      [Product].[Product Categories].[Product].&[568],
+      [Product].[Product Categories].[Product].&[570],
+      [Product].[Product Categories].[Product].&[571],
+      [Product].[Product Categories].[Product].&[566],
+      [Product].[Product Categories].[Product].&[461],
+      [Product].[Product Categories].[Product].&[460],
+      [Product].[Product Categories].[Product].&[459]
+    },
+
+  -- Date selections for analyzing data across different time periods.
   SET [Date.Calendar.Selection_1_1] AS 
-    {{[Date].[Calendar].[Calendar Year].&[2008]}} 
+    {[Date].[Calendar].[Calendar Year].&[2008]}, 
   SET [Date.Calendar.Selection_2_0] AS 
-    {{[Date].[Calendar].[Calendar Year].MEMBERS}} 
+    {[Date].[Calendar].[Calendar Year].MEMBERS},
+
+  -- Measure selections for analyzing sales amounts, tax amounts, and order quantities.
   SET [Measures.Selection_3_0] AS 
     {
-      {
-        [Measures].[Reseller Sales Amount]
-       ,[Measures].[Internet Tax Amount]
-       ,[Measures].[Internet Order Quantity]
-      }
+      [Measures].[Reseller Sales Amount],
+      [Measures].[Internet Tax Amount],
+      [Measures].[Internet Order Quantity]
     } 
+
+-- Main SELECT statement for the cube query combining the defined members and sets.
 SELECT 
-  {[Measures.Selection_3_0]} ON 0
- ,{
-      {[Product.Product Categories.Selection_0_0]}
-    * 
-      {[Date].[Calendar].[Dummy]}
-   ,
-      {[Product.Product Categories.Selection_1_0]}
-    * 
-      {[Date.Calendar.Selection_1_1]}
-   ,
-      {[Product].[Product Categories].[Dummy]}
-    * 
-      {[Date.Calendar.Selection_2_0]}
-  } ON 1
+  {[Measures.Selection_3_0]} ON COLUMNS,
+  {
+    -- Combining different product and date selections.
+    {[Product.Product Categories.Selection_0_0] * [Date].[Calendar].[Dummy]},
+    {[Product.Product Categories.Selection_1_0] * [Date.Calendar.Selection_1_1]},
+    {[Product].[Product Categories].[Dummy] * [Date.Calendar.Selection_2_0]}
+  } ON ROWS
 FROM 
 (
+  -- Sub-select to filter data by specific reseller banks.
   SELECT 
     {
-      [Reseller].[Reseller Bank].[Bank Name].&[International Security]
-     ,[Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve]
-     ,[Reseller].[Reseller Bank].[Bank Name].&[United Security]
-    } ON 0
+      [Reseller].[Reseller Bank].[Bank Name].&[International Security],
+      [Reseller].[Reseller Bank].[Bank Name].&[Primary Bank & Reserve],
+      [Reseller].[Reseller Bank].[Bank Name].&[United Security]
+    } ON COLUMNS
   FROM 
   (
+    -- Nested sub-select to further filter data by customer geography.
     SELECT 
       {
-        [Customer].[Customer Geography].[Country].&[Canada]
-       ,[Customer].[Customer Geography].[Country].&[Germany]
-      } ON 0
+        [Customer].[Customer Geography].[Country].&[Canada],
+        [Customer].[Customer Geography].[Country].&[Germany]
+      } ON COLUMNS
     FROM 
     (
+      -- Deepest sub-select to begin data slice starting from a specific product category.
       SELECT 
-        [Product].[Category].&[1] ON 0
+        [Product].[Category].&[1] ON COLUMNS
       FROM [Adventure Works]
     )
   )

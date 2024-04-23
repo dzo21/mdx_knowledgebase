@@ -1,5 +1,5 @@
 WITH 
-  // dummies
+  -- Dummy members for default selections
   MEMBER [Product].[Product Categories].[Dummy] AS 
     [Product].[Product Categories].DefaultMember 
   MEMBER [Date].[Calendar].[Dummy] AS 
@@ -12,7 +12,7 @@ WITH
     [Measures].DefaultMember 
   MEMBER [Measures].[EmptyRangeDummy] AS 
     [Measures].DefaultMember 
-  // selections
+  -- Set definitions for product categories and dates
   SET [Product.Product Categories.Selection_0_0] AS 
     {
       {[Product].[Product Categories].[Subcategory].&[31]}
@@ -27,8 +27,8 @@ WITH
   SET [Measures.Selection_3_0] AS 
     {{[Measures].[Reseller Sales Amount]}} 
 SELECT 
-  NON EMPTY {[Measures.Selection_3_0]} ON 0
- ,NON EMPTY  {
+  NON EMPTY {[Measures.Selection_3_0]} ON 0,
+  NON EMPTY  {
       {[Product.Product Categories.Selection_0_0]}
     * 
       {[Date].[Calendar].[Dummy]}

@@ -1,5 +1,5 @@
 WITH 
-  // dummies
+  // Define dummy members to use as defaults for unused dimensions
   MEMBER [Product].[Product Categories].[Dummy] AS 
     [Product].[Product Categories].DefaultMember 
   MEMBER [Date].[Calendar].[Dummy] AS 
@@ -12,7 +12,8 @@ WITH
     [Measures].DefaultMember 
   MEMBER [Measures].[EmptyRangeDummy] AS 
     [Measures].DefaultMember 
-  // selections
+
+  // Define selections for various dimensions
   SET [Product.Product Categories.Selection_0_0] AS 
     {
       {[Product].[Product Categories].[Subcategory].&[31]}
@@ -26,9 +27,11 @@ WITH
     {{[Date].[Calendar].[Calendar Year].MEMBERS}} 
   SET [Measures.Selection_3_0] AS 
     {{[Measures].[Reseller Sales Amount]}} 
+
+// Define the query structure with selections on the measures and dimensions
 SELECT 
-  {[Measures.Selection_3_0]} ON 0
- ,{
+  {[Measures.Selection_3_0]} ON 0,
+ {
       {[Product.Product Categories.Selection_0_0]}
     * 
       {[Date].[Calendar].[Dummy]}

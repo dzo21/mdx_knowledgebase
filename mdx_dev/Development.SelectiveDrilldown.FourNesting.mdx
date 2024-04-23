@@ -1,109 +1,82 @@
 WITH 
+  -- Define a drilldown set for Customer Geography
   SET [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_1] AS 
-    {
-      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
-    } 
+    DrillDownLevel([Customer].[Customer Geography].DefaultMember)
+  -- Define a recursive drilldown set for Product Categories at Category level
   SET [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_1] AS 
-    {
-      DrillDownMember
-      (
-        {
-          DrillDownLevel({[Product].[Product Categories].DefaultMember})
-        }
-       ,{[Product].[Product Categories].[Category].&[1]}
-       ,RECURSIVE
-      )
-    } 
+    DrillDownMember(
+      DrillDownLevel([Product].[Product Categories].DefaultMember),
+      {[Product].[Product Categories].[Category].&[1]},
+      RECURSIVE
+    )
+  -- Define a drilldown set for Reseller Type
   SET [DrillDownLevel.Reseller.Reseller Type.SelectedDrilldown_1_3_1] AS 
-    {DrillDownLevel({[Reseller].[Reseller Type].DefaultMember})} 
+    DrillDownLevel([Reseller].[Reseller Type].DefaultMember)
+  -- Define a measure for selection
   SET [Measures.Selection_0_0] AS 
-    {[Measures].[Internet Order Quantity]} 
+    {[Measures].[Internet Order Quantity]}
+  -- Define a drilldown set for Date
   SET [DrillDownLevel.Date.Calendar.Selection_1_0] AS 
-    {DrillDownLevel({[Date].[Calendar].DefaultMember})} 
+    DrillDownLevel([Date].[Calendar].DefaultMember)
+  -- Define the primary selection sets repeated for organization
   SET [DrillDownLevel.Customer.Customer Geography.Selection_1_1] AS 
-    {
-      DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
-    } 
+    DrillDownLevel([Customer].[Customer Geography].DefaultMember)
   SET [DrillDownLevel.Product.Product Categories.Selection_1_2] AS 
-    {
-      DrillDownMember
-      (
-        {
-          DrillDownLevel({[Product].[Product Categories].DefaultMember})
-        }
-       ,{[Product].[Product Categories].[Category].&[1]}
-       ,RECURSIVE
-      )
-    } 
+    DrillDownMember(
+      DrillDownLevel([Product].[Product Categories].DefaultMember),
+      {[Product].[Product Categories].[Category].&[1]},
+      RECURSIVE
+    )
   SET [DrillDownLevel.Reseller.Reseller Type.Selection_1_3] AS 
-    {DrillDownLevel({[Reseller].[Reseller Type].DefaultMember})} 
+    DrillDownLevel([Reseller].[Reseller Type].DefaultMember)
 SELECT 
+  -- Measures for the cube
   {[Measures.Selection_0_0]}
-  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
- ,NON EMPTY 
-    {
-      Generate
-      (
-        [DrillDownLevel.Date.Calendar.Selection_1_0]
-       ,IIF
-        (
-            [Date].[Calendar].CurrentMember
-          IS 
-            [Date].[Calendar].[Calendar Year].&[2007]
-         ,Generate
-          (
-            [Date].[Calendar].CurrentMember
-           ,Generate
-            (
-              [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_1]
-             ,IIF
-              (
-                  [Customer].[Customer Geography].CurrentMember
-                IS 
-                  [Customer].[Customer Geography].[Country].&[Germany]
-               ,Generate
-                (
-                  [Customer].[Customer Geography].CurrentMember
-                 ,Generate
-                  (
-                    [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_1]
-                   ,IIF
-                    (
-                        [Product].[Product Categories].CurrentMember
-                      IS 
-                        [Product].[Product Categories].[Subcategory].&[1]
-                     ,Generate
-                      (
-                        [DrillDownLevel.Reseller.Reseller Type.SelectedDrilldown_1_3_1]
-                       ,
-                          {[Date].[Calendar].CurrentMember}*
-                          {[Customer].[Customer Geography].CurrentMember}*
-                          {[Product].[Product Categories].CurrentMember}*
-                          {[Reseller].[Reseller Type].CurrentMember}
-                      )
-                     ,
-                        {[Date].[Calendar].CurrentMember}*
-                        {[Customer].[Customer Geography].CurrentMember}*
-                        {[Product].[Product Categories].CurrentMember}*
-                        {[Reseller].[Reseller Type].DefaultMember}
-                    )
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0,
+  -- Generate the cross-join of dimension members based on conditions
+  NON EMPTY 
+    Generate(
+      [DrillDownLevel.Date.Calendar.Selection_1_0],
+      IIF(
+        [Date].[Calendar].CurrentMember IS [Date].[Calendar].[Calendar Year].&[2007],
+        Generate(
+          [Date].[Calendar].CurrentMember,
+          Generate(
+            [DrillDownLevel.Customer.Customer Geography.SelectedDrilldown_1_1_1],
+            IIF(
+              [Customer].[Customer Geography].CurrentMember IS [Customer].[Customer Geography].[Country].&[Germany],
+              Generate(
+                [Customer].[Customer Geography].CurrentMember,
+                Generate(
+                  [DrillDownLevel.Product.Product Categories.SelectedDrilldown_1_2_1],
+                  IIF(
+                    [Product].[Product Categories].CurrentMember IS [Product].[Product Categories].[Subcategory].&[1],
+                    Generate(
+                      [DrillDownLevel.Reseller.Reseller Type.SelectedDrilldown_1_3_1],
+                      {[Date].[Calendar].CurrentMember} * 
+                      {[Customer].[Customer Geography].CurrentMember} * 
+                      {[Product].[Product Categories].CurrentMember} * 
+                      {[Reseller].[Reseller Type].CurrentMember}
+                    ),
+                    {[Date].[Calendar].CurrentMember} * 
+                    {[Customer].[Customer Geography].CurrentMember} * 
+                    {[Product].[Product Categories].CurrentMember} * 
+                    {[Reseller].[Reseller Type].DefaultMember}
                   )
                 )
-               ,
-                  {[Date].[Calendar].CurrentMember}*
-                  {[Customer].[Customer Geography].CurrentMember}*
-                  {[Product].[Product Categories].DefaultMember}*
-                  {[Reseller].[Reseller Type].DefaultMember}
-              )
+              ),
+              {[Date].[Calendar].CurrentMember} * 
+              {[Customer].[Customer Geography].CurrentMember} * 
+              {[Product].[Product Categories].DefaultMember} * 
+              {[Reseller].[Reseller Type].DefaultMember}
             )
           )
-         ,
-            {[Date].[Calendar].CurrentMember}*
-            {[Customer].[Customer Geography].DefaultMember}*
-            {[Product].[Product Categories].DefaultMember}*
-            {[Reseller].[Reseller Type].DefaultMember}
-        )
+        ),
+        {[Date].[Calendar].CurrentMember} * 
+        {[Customer].[Customer Geography].DefaultMember} * 
+        {[Product].[Product Categories].DefaultMember} * 
+        {[Reseller].[Reseller Type].DefaultMember}
       )
-    }
+    )
   DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 1
 FROM [Adventure Works];

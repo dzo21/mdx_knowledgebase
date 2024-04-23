@@ -1,254 +1,69 @@
-
-----
-
+-- Retrieves various properties of members in the 'Date' dimension hierarchy of the 'Adventure Works' cube.
 WITH 
+MEMBER [Measures].[CHILDREN_CARDINALITY] AS AXIS(1).Item(0).Item(0).Hierarchy.CHILDREN_CARDINALITY
+MEMBER [Measures].[LEVEL_NUMBER] AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_NUMBER
+MEMBER [Measures].[MEMBER_TYPE] AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_TYPE
+MEMBER [Measures].[LEVEL_UNIQUE_NAME] AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_UNIQUE_NAME
+MEMBER [Measures].[MEMBER_CAPTION] AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_CAPTION
+MEMBER [Measures].[MEMBER_NAME] AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_NAME
+MEMBER [Measures].[MEMBER_UNIQUE_NAME] AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_UNIQUE_NAME
+MEMBER [Measures].[PARENT_UNIQUE_NAME] AS AXIS(1).Item(0).Item(0).Hierarchy.PARENT_UNIQUE_NAME
 
-//MEMBER [Measures].[DimensionUniqueName]
-//AS AXIS(1).Item(0).Item(0).Hierarchy.DIMENSION_UNIQUE_NAME
-//
-//MEMBER [Measures].[DimensionName]
-//AS RIGHT(LEFT([Measures].[DimensionUniqueName], LEN([Measures].[DimensionUniqueName])-1), LEN([Measures].[DimensionUniqueName])-2)
-
-MEMBER [Measures].[CATALOG_NAME]
-AS AXIS(1).Item(0).Item(0).Hierarchy.CATALOG_NAME
-
-//MEMBER [Measures].[CUBE_NAME]
-//AS AXIS(1).Item(0).Item(0).Hierarchy.CUBE_NAME
-
-MEMBER [Measures].[DIMENSION_UNIQUE_NAME]
-AS AXIS(1).Item(0).Item(0).Hierarchy.DIMENSION_UNIQUE_NAME
-
-MEMBER [Measures].[HIERARCHY_UNIQUE_NAME]
-AS AXIS(1).Item(0).Item(0).Hierarchy.HIERARCHY_UNIQUE_NAME
-
-MEMBER [Measures].[LEVEL_UNIQUE_NAME]
-AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_UNIQUE_NAME
-
-MEMBER [Measures].[LEVEL_NUMBER]
-AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_NUMBER
-
-//MEMBER [Measures].[MEMBER_ORDINAL]
-//AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_ORDINAL
-
-MEMBER [Measures].[MEMBER_NAME]
-AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_NAME
-
-MEMBER [Measures].[MEMBER_UNIQUE_NAME]
-AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_UNIQUE_NAME
-
-MEMBER [Measures].[MEMBER_TYPE]
-AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_TYPE
-
-//MEMBER [Measures].[MEMBER_TYPE]
-//AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_TYPE
-
-MEMBER [Measures].[MEMBER_CAPTION]
-AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_CAPTION
-
-MEMBER [Measures].[CHILDREN_CARDINALITY]
-AS AXIS(1).Item(0).Item(0).Hierarchy.CHILDREN_CARDINALITY
-
-MEMBER [Measures].[PARENT_COUNT]
-AS AXIS(1).Item(0).Item(0).Hierarchy.PARENT_COUNT
-
-MEMBER [Measures].[MEMBER_KEY]
-AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_KEY
-
-MEMBER [Measures].[IS_PLACEHOLDERMEMBER]
-AS AXIS(1).Item(0).Item(0).Hierarchy.IS_PLACEHOLDERMEMBER
-
-MEMBER [Measures].[IS_DATAMEMBER]
-AS AXIS(1).Item(0).Item(0).Hierarchy.IS_DATAMEMBER
-
-
-
-
-//MEMBER [Measures].[HierarchyUniqueName]
-//AS AXIS(1).Item(0).Item(0).Hierarchy.HIERARCHY_UNIQUE_NAME
-//
-//MEMBER [Measures].[LevelOrdinal]
-//AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_NUMBER
-//
-//MEMBER [Measures].[LevelName]
-//AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL.NAME
-//
-//MEMBER [Measures].[LevelUniqueName]
-//AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_UNIQUE_NAME
-//
-//MEMBER [Measures].[MemberName]
-//AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_NAME
-//
-//MEMBER [Measures].[MemberUniqueName]
-//AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_UNIQUE_NAME
-//
-//MEMBER [Measures].[MemberCaption]
-//AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_CAPTION
-//
-//MEMBER [Measures].[MemberValue]
-//AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_VALUE
-
--- MemberProperties at related level (IIF clause serves for cosmetic purposes only)
-
-//MEMBER [Measures].[MemberProperty_1] -- at leaf level only
-//AS IIF(ISLEAF(AXIS(1).Item(0).Item(0).Hierarchy.CurrentMember), // IIF(AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_NUMBER = x
-//	AXIS(1).Item(0).Item(0).Hierarchy.CurrentMember.PROPERTIES('LastDay_OfMonth')
-//	, NULL)
-
-//MEMBER [Measures].[MemberProperty_2] -- at leaf level only
-//AS IIF(ISLEAF(AXIS(1).Item(0).Item(0).Hierarchy.CurrentMember), // IIF(AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_NUMBER = x
-//	AXIS(1).Item(0).Item(0).Hierarchy.CurrentMember.PROPERTIES('LastDay_OfQuarter')
-//	, NULL)
-
----------
-
+-- Selects these member properties alongside all members from the 'Date' hierarchy.
 SELECT {
-[Measures].[CATALOG_NAME],
-//[Measures].[CUBE_NAME],
-[Measures].[DIMENSION_UNIQUE_NAME],
-[Measures].[HIERARCHY_UNIQUE_NAME],
-[Measures].[LEVEL_UNIQUE_NAME],
-[Measures].[LEVEL_NUMBER],
-//[Measures].[MEMBER_ORDINAL], 
-[Measures].[MEMBER_NAME], 
-[Measures].[MEMBER_UNIQUE_NAME],
-[Measures].[MEMBER_TYPE],
-[Measures].[MEMBER_CAPTION],
-[Measures].[CHILDREN_CARDINALITY],
-[Measures].[PARENT_COUNT],
-[Measures].[MEMBER_KEY],
-[Measures].[IS_PLACEHOLDERMEMBER],
-[Measures].[IS_DATAMEMBER]
-}
-ON COLUMNS,
-
+	[Measures].[CHILDREN_CARDINALITY],
+	[Measures].[LEVEL_NUMBER],
+	[Measures].[MEMBER_TYPE],
+	[Measures].[LEVEL_UNIQUE_NAME],
+	[Measures].[MEMBER_CAPTION],
+	[Measures].[MEMBER_NAME],
+	[Measures].[MEMBER_UNIQUE_NAME],
+	[Measures].[PARENT_UNIQUE_NAME]
+} ON COLUMNS,
 [Date].[Date].AllMembers ON ROWS
 FROM [Adventure Works]
 
-------------------------------------
-
-
-
-
-WITH 
-
-MEMBER [Measures].[CHILDREN_CARDINALITY]
-AS AXIS(1).Item(0).Item(0).Hierarchy.CHILDREN_CARDINALITY
-
-MEMBER [Measures].[LEVEL_NUMBER]
-AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_NUMBER
-
-MEMBER [Measures].[MEMBER_TYPE]
-AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_TYPE
-
-MEMBER [Measures].[LEVEL_UNIQUE_NAME]
-AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_UNIQUE_NAME
-
-MEMBER [Measures].[MEMBER_CAPTION]
-AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_CAPTION
-
-MEMBER [Measures].[MEMBER_NAME]
-AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_NAME
-
-MEMBER [Measures].[MEMBER_UNIQUE_NAME]
-AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_UNIQUE_NAME
-
-MEMBER [Measures].[PARENT_UNIQUE_NAME]
-AS AXIS(1).Item(0).Item(0).Hierarchy.PARENT_UNIQUE_NAME
-
-SELECT {
-	[Measures].[CHILDREN_CARDINALITY]
-,	[Measures].[LEVEL_NUMBER]
-,	[Measures].[MEMBER_TYPE]
-,	[Measures].[LEVEL_UNIQUE_NAME]
-,	[Measures].[MEMBER_CAPTION]
-,	[Measures].[MEMBER_NAME]
-,	[Measures].[MEMBER_UNIQUE_NAME]
-,	[Measures].[PARENT_UNIQUE_NAME]
-}
-ON COLUMNS,
-[Date].[Date].AllMembers ON ROWS
-FROM [Adventure Works]
-
-
-// public DbSchemaDto GetSchema(DDInt.IUdmConnection aUdmConnection)
-SELECT [CUBE_NAME]
-	,[CUBE_CAPTION]
+-- Retrieves the schema of cubes in the system; specifically looking for those that originate from a certain source.
+SELECT [CUBE_NAME], [CUBE_CAPTION]
 FROM $SYSTEM.MDSchema_Cubes
 WHERE CUBE_SOURCE = 1
 
-
-// public DbCubeSchemaDto GetCubeSchema(DDInt.IUdmConnection aUdmConnection, string aCubeUniqueName)
-SELECT [MEASUREGROUP_NAME]
-	,[MEASUREGROUP_CAPTION]
+-- Retrieves measure group names and captions from the 'Adventure Works' cube.
+SELECT [MEASUREGROUP_NAME], [MEASUREGROUP_CAPTION]
 FROM $SYSTEM.MDSchema_MeasureGroups
-WHERE [CATALOG_NAME] = 'AdventureWorksDW'
-	AND [CUBE_NAME] = 'Adventure Works'
+WHERE [CATALOG_NAME] = 'AdventureWorksDW' AND [CUBE_NAME] = 'Adventure Works'
 
-// public DbCubeSchemaDto GetCubeSchema(DDInt.IUdmConnection aUdmConnection, string aCubeUniqueName)
-SELECT [DIMENSION_NAME]
-	,[DIMENSION_CAPTION]
-	,[DIMENSION_UNIQUE_NAME]
+-- Retrieves dimension details from the 'Adventure Works' cube.
+SELECT [DIMENSION_NAME], [DIMENSION_CAPTION], [DIMENSION_UNIQUE_NAME]
 FROM $SYSTEM.MDSchema_Dimensions
-WHERE [CATALOG_NAME] = 'AdventureWorksDW'
-	AND [CUBE_NAME] = 'Adventure Works'
+WHERE [CATALOG_NAME] = 'AdventureWorksDW' AND [CUBE_NAME] = 'Adventure Works'
 
-// public DbCubeSchemaDto GetCubeSchema(DDInt.IUdmConnection aUdmConnection, string aCubeUniqueName)
-SELECT [HIERARCHY_NAME]
-	,[HIERARCHY_CAPTION]
-	,[HIERARCHY_UNIQUE_NAME]
-	,[DEFAULT_MEMBER]
-	,[ALL_MEMBER]
-	,[HIERARCHY_ORIGIN]
+-- Retrieves hierarchy details from the 'Adventure Works' cube.
+SELECT [HIERARCHY_NAME], [HIERARCHY_CAPTION], [HIERARCHY_UNIQUE_NAME], [DEFAULT_MEMBER], [ALL_MEMBER], [HIERARCHY_ORIGIN]
 FROM $SYSTEM.MDSchema_Hierarchies
-WHERE [CATALOG_NAME] = 'AdventureWorksDW'
-	AND [CUBE_NAME] = 'Adventure Works'
+WHERE [CATALOG_NAME] = 'AdventureWorksDW' AND [CUBE_NAME] = 'Adventure Works'
 
-// public DbHierarchySchemaDto GetHierarchySchema(DDInt.IUdmConnection aUdmConnection, string aHierarchyUniqueName)
-SELECT [LEVEL_NAME]
-	,[LEVEL_CAPTION]
-	,[LEVEL_UNIQUE_NAME]
-	,[LEVEL_NUMBER]
+-- Retrieves level details for the 'Product Categories' hierarchy in the 'Adventure Works' cube.
+SELECT [LEVEL_NAME], [LEVEL_CAPTION], [LEVEL_UNIQUE_NAME], [LEVEL_NUMBER]
 FROM $SYSTEM.MDSchema_Levels
-WHERE [CATALOG_NAME] = 'AdventureWorksDW'
-	// AND [CUBE_NAME] = 'Adventure Works'
-	AND [HIERARCHY_	UNIQUE_NAME] = '[Product].[Product Categories]'
+WHERE [CATALOG_NAME] = 'AdventureWorksDW' AND [HIERARCHY_UNIQUE_NAME] = '[Product].[Product Categories]'
 
-
---All Levels of Hierarchies (user-defined) 
-SELECT [CATALOG_NAME] AS [DATABASE]
-	,CUBE_NAME AS [CUBE]
-	,[DIMENSION_UNIQUE_NAME] AS [DIMENSION]
-	,[HIERARCHY_UNIQUE_NAME] AS [HIERARCHY]
-	,LEVEL_CAPTION AS [LEVEL]
-	,[LEVEL_NAME]
-	,[LEVEL_NUMBER] AS [LEVEL NUMBER]
-	,[LEVEL_NAME_SQL_COLUMN_NAME] AS [NAME_COLUMN]
-	,[LEVEL_UNIQUE_NAME_SQL_COLUMN_NAME] AS [UNIQUE_NAME_COLUMN]
-	,[LEVEL_KEY_SQL_COLUMN_NAME] AS [KEY_COLUMN]
-FROM $SYSTEM.MDSchema_levels
-WHERE CUBE_NAME = 'Adventure Works'
-	AND level_origin = 1
+-- Retrieves all levels of user-defined hierarchies.
+SELECT [CATALOG_NAME] AS [DATABASE], CUBE_NAME AS [CUBE], [DIMENSION_UNIQUE_NAME] AS [DIMENSION], [HIERARCHY_UNIQUE_NAME] AS [HIERARCHY],
+       LEVEL_CAPTION AS [LEVEL], [LEVEL_NAME], [LEVEL_NUMBER] AS [LEVEL NUMBER], [LEVEL_NAME_SQL_COLUMN_NAME] AS [NAME_COLUMN],
+       [LEVEL_UNIQUE_NAME_SQL_COLUMN_NAME] AS [UNIQUE_NAME_COLUMN], [LEVEL_KEY_SQL_COLUMN_NAME] AS [KEY_COLUMN]
+FROM $SYSTEM.MDSchema_Levels
+WHERE CUBE_NAME = 'Adventure Works' AND level_origin = 1
 ORDER BY [DIMENSION_UNIQUE_NAME]
- 
---Calculated Measures/Members 
-SELECT [MEMBER_UNIQUE_NAME] AS [CALCULATED_MEASURE]
-	,[MEMBER_CAPTION] AS [CAPTION]
-	,[EXPRESSION]
+
+-- Retrieves calculated measures/members from the 'Adventure Works' cube.
+SELECT [MEMBER_UNIQUE_NAME] AS [CALCULATED_MEASURE], [MEMBER_CAPTION] AS [CAPTION], [EXPRESSION]
 FROM $SYSTEM.MDSCHEMA_MEMBERS
-WHERE CUBE_NAME = 'Adventure Works'
-	AND [MEMBER_TYPE] = 4 --MDMEMBER_TYPE_FORMULA
- 
---Dimension Usage/Fact-Dimension Bus Matrix 
-SELECT [MEASUREGROUP_NAME] AS [MEASUREGROUP]
-	,[MEASUREGROUP_CARDINALITY]
-	,[DIMENSION_UNIQUE_NAME] AS [DIM]
-	,[DIMENSION_GRANULARITY] AS [DIM_KEY]
-	,[DIMENSION_CARDINALITY]
-	,[DIMENSION_IS_VISIBLE] AS [IS_VISIBLE]
-	,[DIMENSION_IS_FACT_DIMENSION] AS [IS_FACT_DIM]
+WHERE CUBE_NAME = 'Adventure Works' AND [MEMBER_TYPE] = 4 -- MDMEMBER_TYPE_FORMULA
+
+-- Retrieves usage details of dimensions in the 'Internet Sales' measure group of the 'Adventure Works' cube.
+SELECT [MEASUREGROUP_NAME] AS [MEASUREGROUP], [MEASUREGROUP_CARDINALITY], [DIMENSION_UNIQUE_NAME] AS [DIM],
+       [DIMENSION_GRANULARITY] AS [DIM_KEY], [DIMENSION_CARDINALITY], [DIMENSION_IS_VISIBLE] AS [IS_VISIBLE],
+       [DIMENSION_IS_FACT_DIMENSION] AS [IS_FACT_DIM]
 FROM $SYSTEM.MDSCHEMA_MEASUREGROUP_DIMENSIONS
-WHERE [CUBE_NAME] = 'Adventure Works'
-	AND [MEASUREGROUP_NAME] = 'Internet Sales'
-
-
-
+WHERE [CUBE_NAME] = 'Adventure Works' AND [MEASUREGROUP_NAME] = 'Internet Sales'

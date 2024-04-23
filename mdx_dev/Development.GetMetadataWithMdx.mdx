@@ -1,40 +1,51 @@
 WITH 
 
+-- Calculate the number of children each member has in its hierarchy
 MEMBER [Measures].[CHILDREN_CARDINALITY]
 AS AXIS(1).Item(0).Item(0).Hierarchy.CHILDREN_CARDINALITY
 
+-- Determine the level number for each member in its hierarchy
 MEMBER [Measures].[LEVEL_NUMBER]
 AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_NUMBER
 
+-- Identify the type of the member in its hierarchy
 MEMBER [Measures].[MEMBER_TYPE]
 AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_TYPE
 
+-- Retrieve the unique name of the level to which the member belongs
 MEMBER [Measures].[LEVEL_UNIQUE_NAME]
 AS AXIS(1).Item(0).Item(0).Hierarchy.LEVEL_UNIQUE_NAME
 
+-- Retrieve the caption of the member
 MEMBER [Measures].[MEMBER_CAPTION]
 AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_CAPTION
 
+-- Retrieve the name of the member
 MEMBER [Measures].[MEMBER_NAME]
 AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_NAME
 
+-- Retrieve the unique name of the member
 MEMBER [Measures].[MEMBER_UNIQUE_NAME]
 AS AXIS(1).Item(0).Item(0).Hierarchy.MEMBER_UNIQUE_NAME
 
+-- Retrieve the unique name of the parent of the member
 MEMBER [Measures].[PARENT_UNIQUE_NAME]
 AS AXIS(1).Item(0).Item(0).Hierarchy.PARENT_UNIQUE_NAME
 
 SELECT {
-	[Measures].[CHILDREN_CARDINALITY]
-,	[Measures].[LEVEL_NUMBER]
-,	[Measures].[MEMBER_TYPE]
-,	[Measures].[LEVEL_UNIQUE_NAME]
-,	[Measures].[MEMBER_CAPTION]
-,	[Measures].[MEMBER_NAME]
-,	[Measures].[MEMBER_UNIQUE_NAME]
-,	[Measures].[PARENT_UNIQUE_NAME]
+	[Measures].[CHILDREN_CARDINALITY],
+	[Measures].[LEVEL_NUMBER],
+	[Measures].[MEMBER_TYPE],
+	[Measures].[LEVEL_UNIQUE_NAME],
+	[Measures].[MEMBER_CAPTION],
+	[Measures].[MEMBER_NAME],
+	[Measures].[MEMBER_UNIQUE_NAME],
+	[Measures].[PARENT_UNIQUE_NAME]
 }
 ON COLUMNS,
 [Date].[Date].AllMembers ON ROWS
 FROM [Adventure Works]
+
+
+
 

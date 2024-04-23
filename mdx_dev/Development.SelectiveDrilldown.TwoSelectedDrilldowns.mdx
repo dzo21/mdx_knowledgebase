@@ -1,63 +1,64 @@
 WITH 
+  -- Defining a measure to use in the selection.
   SET [Measures.Selection_0_0] AS 
     {[Measures].[Internet Order Quantity]} 
+  -- Generating the set for calendar dates.
   SET [Date.Calendar.Selection_Set_For_Generate] AS 
     {DrillDownLevel({[Date].[Calendar].DefaultMember})} 
+  -- Generating the set for customer geography.
   SET [Customer.Customer Geography.Selection_Set_For_Generate] AS 
     {
       DrillDownLevel({[Customer].[Customer Geography].DefaultMember})
     } 
 SELECT 
+  -- Selecting the defined measure.
   {[Measures.Selection_0_0]}
-  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0
- ,NON EMPTY 
+  DIMENSION PROPERTIES [PARENT_UNIQUE_NAME]  ON 0,
+  NON EMPTY 
     {
       {
         Generate
         (
-          [Date.Calendar.Selection_Set_For_Generate]
-         ,Generate
+          -- Generating based on calendar date.
+          [Date.Calendar.Selection_Set_For_Generate],
+          Generate
           (
-            [Customer.Customer Geography.Selection_Set_For_Generate]
-           ,IIF
+            -- Generating based on customer geography.
+            [Customer.Customer Geography.Selection_Set_For_Generate],
+            -- Conditional logic for handling different years.
+            IIF
             (
-                [Date].[Calendar].CurrentMember
-              IS 
-                [Date].[Calendar].[Calendar Year].&[2008]
-             ,Generate
-              (
-                [Date].[Calendar].CurrentMember
-               ,Generate
+                -- Check if the current year is 2008.
+                [Date].[Calendar].CurrentMember IS [Date].[Calendar].[Calendar Year].&[2008],
+                Generate
                 (
-                  [Customer.Customer Geography.Selection_Set_For_Generate]
-                 ,
-                    {[Date].[Calendar].CurrentMember}
-                  * 
-                    {[Customer].[Customer Geography].CurrentMember}
-                )
-              )
-             ,IIF
-              (
-                  [Date].[Calendar].CurrentMember
-                IS 
-                  [Date].[Calendar].[Calendar Year].&[2007]
-               ,Generate
-                (
-                  [Date].[Calendar].CurrentMember
-                 ,Generate
+                  -- Regenerate for 2008.
+                  [Date].[Calendar].CurrentMember,
+                  Generate
                   (
-                    [Customer.Customer Geography.Selection_Set_For_Generate]
-                   ,
-                      {[Date].[Calendar].CurrentMember}
-                    * 
-                      {[Customer].[Customer Geography].CurrentMember}
+                    [Customer.Customer Geography.Selection_Set_For_Generate],
+                    -- Cross join of date and geography for 2008.
+                    {[Date].[Calendar].CurrentMember} * {[Customer].[Customer Geography].CurrentMember}
                   )
+                ),
+                -- Check if the current year is 2007.
+                IIF
+                (
+                  [Date].[Calendar].CurrentMember IS [Date].[Calendar].[Calendar Year].&[2007],
+                  Generate
+                  (
+                    -- Regenerate for 2007.
+                    [Date].[Calendar].CurrentMember,
+                    Generate
+                    (
+                      [Customer.Customer Geography.Selection_Set_For_Generate],
+                      -- Cross join of date and geography for 2007.
+                      {[Date].[Calendar].CurrentMember} * {[Customer].[Customer Geography].CurrentMember}
+                    )
+                  ),
+                  -- Default cross join for other years.
+                  {[Date].[Calendar].CurrentMember} * {[Customer].[Customer Geography].DefaultMember}
                 )
-               ,
-                  {[Date].[Calendar].CurrentMember}
-                * 
-                  {[Customer].[Customer Geography].DefaultMember}
-              )
             )
           )
         )
