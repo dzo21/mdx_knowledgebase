@@ -1,0 +1,29 @@
+# Calculate the percentage of parent for each product category
+WITH 
+MEMBER [Measures].[Percent of Parent] AS 
+    # If the current member has no parent, return null
+    IIF(
+        [Product].[Product Categories].CurrentMember.Parent Is Null, 
+        Null,
+        # Calculate the percentage of parent for the current member
+        ([Measures].[Reseller Sales Amount]) /
+            (
+                [Product].[Product Categories].CurrentMember.Parent,
+                [Measures].[Reseller Sales Amount]
+            )
+    ), 
+    FORMAT="Percent"
+    
+# Define the query
+SELECT 
+    {
+        # Show the reseller sales amount for each product category
+        ([Measures].[Reseller Sales Amount]),
+        # Show the percentage of parent for each product category
+        ([Measures].[Percent of Parent])
+    } ON COLUMNS,
+    # Show the product categories on the rows
+    {[Product].[Product Categories].Members} ON ROWS
+FROM 
+    # Use the Step-by-Step cube
+    [Step-by-Step]

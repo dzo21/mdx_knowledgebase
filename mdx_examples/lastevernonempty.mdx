@@ -1,0 +1,34 @@
+WITH 
+/* Calculate the last sale date for each customer */
+MEMBER MEASURES.LastSaleOriginal AS 
+TAIL(
+    NONEMPTY({NULL:[Date].[Date].CURRENTMEMBER} * [Measures].[Internet Sales Amount])
+).ITEM(0)
+
+/* Calculate the number of days to the current date */
+MEMBER MEASURES.DaysToDate AS 
+COUNT(NULL:[Date].[Date].CURRENTMEMBER) - 1
+
+/* Check if the customer had a sale */
+MEMBER MEASURES.HadSale AS 
+IIF([Measures].[Internet Sales Amount] = 0, NULL, MEASURES.DaysToDate)
+
+/* Calculate the max date of sale for each customer */
+MEMBER MEASURES.MaxDate AS 
+MAX(NULL:[Date].[Date].CURRENTMEMBER, MEASURES.HadSale)
+
+/* Calculate the last sale amount for each customer */
+MEMBER MEASURES.LastSale AS 
+IIF(ISEMPTY(MEASURES.MaxDate), NULL, 
+    ([Measures].[Internet Sales Amount],
+     [Date].[Date].[Date].MEMBERS.ITEM(MEASURES.MaxDate)))
+
+/* Final query */
+SELECT 
+HEAD([Customer].[Customer].[Customer].MEMBERS, 10)
+*
+{[Measures].[Internet Sales Amount], MEASURES.LastSale} 
+ON 0,
+[Date].[Date].[Date].MEMBERS
+ON 1
+FROM [Adventure Works];

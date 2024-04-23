@@ -1,0 +1,38 @@
+# Initialize Consumption to 0
+MEMBER [Measures].[Consumption]
+AS IIF(CalculationCurrentPass()=1, 0,
+CalculationPassValue([Measures].[Consumption],-1,Relative),
+"Initialize Consumption to 0 for the first pass")
+
+# Define a constant Investment of 100
+MEMBER [Measures].[Investment]
+AS 100,
+"Constant Investment of 100"
+
+# Define Coefficient of Propensity to Consumption as 0.6
+MEMBER [Measures].[Coefficient]
+AS 0.6,
+"Coefficient of Propensity to Consumption"
+
+# Calculate Aggregate Demand as Consumption + Investment
+MEMBER [Measures].[Aggregate Demand]
+AS [Measures].[Consumption] + [Measures].[Investment],
+"Calculate Aggregate Demand as Consumption + Investment"
+
+# Recalculate Consumption using the Coefficient and Aggregate Demand
+CELL CALCULATION [Consumption Calculation]
+FOR '({[Measures].[Consumption]})'
+AS 'IIF(CalculationCurrentPass()=1, 0,
+[Coefficient]*CalculationPassValue([Measures].[Aggregate Demand],
+-1,Relative))',
+"Recalculate Consumption using the Coefficient and Aggregate Demand",
+CALCULATION_PASS_NUMBER=100, CALCULATION_PASS_DEPTH=99
+
+# Select the measures
+SELECT 
+  {
+    [Measures].[Consumption]
+   ,[Measures].[Investment]
+   ,[Measures].[Aggregate Demand]
+  } ON COLUMNS
+FROM [Adventure Works];

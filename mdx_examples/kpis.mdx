@@ -1,0 +1,108 @@
+/*
+This code is used to manipulate Key Performance Indicators (KPIs) in an 
+OLAP cube. It selects, formats, and changes existing KPIs, and creates a new one.
+*/
+
+-- Selecting existing KPIs
+SELECT 
+    CROSSJOIN([Date].[Fiscal].[Fiscal Year].[FY 2003], 
+              {KPIValue("Product Gross Profit Margin"), 
+               KPIGoal("Product Gross Profit Margin"), 
+               KPIStatus("Product Gross Profit Margin")}) 
+ON COLUMNS, 
+    [Product].[Product Categories].[Category] 
+ON ROWS 
+FROM [Adventure Works];
+
+/*
+Formatting existing KPIs
+*/
+WITH MEMBER [Measures].[Actual] AS 
+    KPIValue("Product Gross Profit Margin"), 
+    FORMAT_STRING = "Percent"
+MEMBER [Measures].[Target] AS 
+    KPIGoal("Product Gross Profit Margin"), 
+    FORMAT_STRING = "Percent"
+MEMBER [Measures].[Status] AS 
+    KPIStatus("Product Gross Profit Margin")
+MEMBER [Measures].[Trend] AS 
+    KPITrend("Product Gross Profit Margin")
+SELECT 
+    CROSSJOIN({[Date].[Fiscal].[Fiscal Year].[FY 2003], 
+                 [Date].[Fiscal].[Fiscal Year].[FY 2004]}, 
+               {[Measures].[Actual], 
+                [Measures].[Target], 
+                [Measures].[Status], 
+                [Measures].[Trend]}) 
+ON COLUMNS, 
+    [Product].[Product Categories].[Category] 
+ON ROWS 
+FROM [Adventure Works];
+
+/*
+Changing existing KPIGoal (target) and KPIStatus
+*/
+WITH MEMBER [Measures].[Actual] AS 
+    KPIValue("Product Gross Profit Margin"), 
+    FORMAT_STRING = "Percent"
+MEMBER [Measures].[Target] AS 
+    IIF([Product].[Product Categories].CURRENTMEMBER IS [Product].[Product Categories].[Accessories], 
+        .60, 
+        KPIGoal("Product Gross Profit Margin")), 
+    FORMAT_STRING = "Percent"
+MEMBER [Measures].[Status] AS 
+    IIF([Product].[Product Categories].CURRENTMEMBER IS [Product].[Product Categories].[Accessories], 
+        CASE 
+            WHEN [Measures].[Actual] / [Measures].[Target] >= 0.95 THEN 1
+            WHEN [Measures].[Actual] / [Measures].[Target] < 0.95 AND [Measures].[Actual] / [Measures].[Target] >= 0.70 THEN 0
+            ELSE -1
+        END, 
+        KPIStatus("Product Gross Profit Margin"))
+SELECT 
+    CROSSJOIN({[Date].[Fiscal].[Fiscal Year].[FY 2003], [Date].[Fiscal].[Fiscal Year].[FY 2004]}, 
+               {[Measures].[Actual], [Measures].[Target], [Measures].[Status]}) 
+ON COLUMNS, 
+    [Product].[Product Categories].[Category] 
+ON ROWS 
+FROM [Adventure Works];
+
+/*
+Creating a new KPI
+*/
+CREATE MEMBER [Adventure Works].[Measures].[Profit Margin Value] AS 
+    [Measures].[Gross Profit Margin];
+GO
+CREATE KPI [Adventure Works].[Profit Margin] AS 
+    [Measures].[Profit Margin Value], 
+    GOAL = 
+        CASE 
+            WHEN [Product].[Category].CURRENTMEMBER IS [Product].[Category].[Accessories] THEN vba!FORMAT(.40, "Percent")
+            WHEN [Product].[Category].CURRENTMEMBER IS [Product].[Category].[Bikes] THEN vba!FORMAT(.12, "Percent")
+            WHEN [Product].[Category].CURRENTMEMBER IS [Product].[Category].[Clothing] THEN vba!FORMAT(.20, "Percent")
+            WHEN [Product].[Category].CURRENTMEMBER IS [Product].[Category].[Components] THEN vba!FORMAT(.10, "Percent")
+            ELSE vba!FORMAT(.12, "Percent")
+        END, 
+    STATUS = 
+        CASE 
+            WHEN VBA!CDbl(LEFT(KPIValue("Profit Margin"), LEN(KPIValue("Profit Margin")) - 1)) * 100 / VBA!CDbl(LEFT(KPIGoal("Profit Margin"), LEN(KPIGoal("Profit Margin")) - 1)) >= 0.90 THEN 1
+            WHEN VBA!CDbl(LEFT(KPIValue("Profit Margin"), LEN(KPIValue("Profit Margin")) - 1)) * 100 / VBA!CDbl(LEFT(KPIGoal("Profit Margin"), LEN(KPIGoal("Profit Margin")) - 1)) < 0.90 AND VBA!CDbl(LEFT(KPIValue("Profit Margin"), LEN(KPIValue("Profit Margin")) - 1)) * 100 / VBA!CDbl(LEFT(KPIGoal("Profit Margin"), LEN(KPIGoal("Profit Margin")) - 1)) >= 0.80 THEN 0
+            ELSE -1
+        END;
+
+/*
+Selecting the new KPI
+*/
+SELECT 
+    CROSSJOIN({[Date].[Fiscal].[Fiscal Year].[FY 2003], [Date].[Fiscal].[Fiscal Year].[FY 2004]}, 
+               {KPIValue("Profit Margin"), KPIGoal("Profit Margin"), KPIStatus("Profit Margin")}) 
+ON COLUMNS, 
+    [Product].[Product Categories].[Category] 
+ON ROWS 
+FROM [Adventure Works];
+
+/*
+Cleaning up
+*/
+DROP KPI [Adventure Works].[Profit Margin];
+GO
+DROP MEMBER [Adventure Works].[Measures].[Profit Margin Value];

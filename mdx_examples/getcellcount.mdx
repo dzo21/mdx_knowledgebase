@@ -1,0 +1,63 @@
+# Define a set of measures to count the number of descendants for each dimension
+
+WITH 
+  # Count the number of dates in the fiscal year 2007
+  MEMBER [Measures].[DateCount] AS 
+    /* Count the number of leaf nodes in the Date dimension, 
+       including empty dates */
+    Count(
+      Descendants(
+        [Date].[Fiscal].[Fiscal Year].&[2007], 
+        LEAVES
+      )
+    ,INCLUDEEMPTY
+    )
+
+  # Count the number of products in category 2
+  MEMBER [Measures].[ProductCount] AS 
+    /* Count the number of leaf nodes in the Product dimension, 
+       including empty products */
+    Count(
+      Descendants(
+        [Product].[Product Categories].[Category].&[2], 
+        LEAVES
+      )
+     ,INCLUDEEMPTY
+    )
+
+  # Count the number of promotions
+  MEMBER [Measures].[PromotionsCount] AS 
+    /* Count the number of leaf nodes in the Promotion dimension, 
+       including empty promotions */
+    Count(
+      Descendants(
+        [Promotion].[Promotions].[All Promotions], 
+        LEAVES
+      )
+     ,INCLUDEEMPTY
+    )
+
+  # Count the number of sales territories
+  MEMBER [Measures].[SalesTerritoryCount] AS 
+    /* Count the number of leaf nodes in the Sales Territory dimension, 
+       including empty territories */
+    Count(
+      Descendants(
+        [Sales Territory].[Sales Territory].[All Sales Territories], 
+        LEAVES
+      )
+     ,INCLUDEEMPTY
+    )
+
+  # Calculate the total count by multiplying the counts of each dimension
+  MEMBER [Measures].[Count] AS 
+    /* Calculate the total count by multiplying the counts of each dimension */
+    [Measures].[ProductCount] *
+    [Measures].[DateCount] *
+    [Measures].[PromotionsCount] *
+    [Measures].[SalesTerritoryCount]
+
+SELECT 
+  [Measures].[Count] ON 0
+FROM 
+  [WritebackSimple];

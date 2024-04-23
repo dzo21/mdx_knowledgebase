@@ -1,0 +1,58 @@
+# Refactored code with added docstrings and comments
+
+# Set a scope for the calculation
+SCOPE([Measures].[Sales], [Geography].[Region].[North], [Period].[Month].[January 2005])
+    # Set the value of THIS to 50 for the specified scope
+    THIS = 50
+END SCOPE
+
+# Set another scope for the calculation
+SCOPE([Measures].[Sales])
+    SCOPE([Geography].[Region].[North])
+        SCOPE([Period].[Month].[January 2005])
+            # Set the value of THIS to 50 for the specified scope
+            THIS = 50
+        END SCOPE
+    END SCOPE
+END SCOPE
+
+# Calculate and set a new value for THIS
+CALCULATE
+SCOPE([Measures].[Sales], [Period].[Month].[January 2005])
+    # Set the value of THIS to February 2005
+    THIS = [Period].[Month].[February 2005]
+    # Freeze the current value of THIS
+    FREEZE(THIS)
+END SCOPE
+
+# Set the value of THIS to 0 for a specific scope
+SCOPE([Measures].[Sales], [Period].[Month].[February 2005])
+    THIS = 0
+END SCOPE
+
+# Calculate and set an error value for THIS
+CALCULATE
+SCOPE([Measures].[Sales], [Period].[Year-Month].[Month].[January 2005])
+    # Set the value of THIS to an error message
+    THIS = ERROR('Hello World')
+END SCOPE
+
+# Create a new calculated member for currency formatting
+CALCULATE
+CREATE MEMBER CURRENTCUBE.[MEASURES].[Currency Test]
+    AS [Measures].[Fact Value],
+    FORMAT_STRING = 'Currency',
+    VISIBLE = 1
+
+# Set the language for a specific scope
+SCOPE([MEASURES].[Currency Test])
+    SCOPE([Account].[Account Structure].&[2])
+        # Set the language to 1033 (en-US)
+        LANGUAGE(THIS) = 1033
+    END SCOPE
+
+    SCOPE([Account].[Account Structure].&[4])
+        # Set the language to 2055 (fr-FR)
+        LANGUAGE(THIS) = 2055
+    END SCOPE
+END SCOPE

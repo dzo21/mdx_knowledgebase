@@ -1,8 +1,9 @@
+/* Drill-through 1 */
 DRILLTHROUGH 
-  SELECT 
+SELECT 
     {Measures.[Internet Total Sales]} ON COLUMNS
-  FROM [Model]
-  WHERE 
+FROM [Model]
+WHERE 
     (
       [Geography].[Country Region Name].&[United States]
      ,[Date].[Calendar Year].&[2007]
@@ -10,62 +11,61 @@ DRILLTHROUGH
      ,[Promotion].[Promotion Category].[Reseller]
      ,[Product Category].[Product Category Name].&[Bikes]
     )
-  RETURN 
+RETURN 
     [$Internet Sales].[Sales Order Number]
    ,[$Internet Sales].[Order Date]
    ,[$Internet Sales].[Ship Date]
    ,[$Geography].[City]
-   ,[$Promotion].[Promotion Category];
+   ,[$Promotion].[Promotion Category]
 
-
+/* Drill-through 2 */
 DRILLTHROUGH 
-  SELECT 
+SELECT 
     [Measures].[Reseller Sales Amount] ON 0
-  FROM [Adventure Works]
-  WHERE 
+FROM [Adventure Works]
+WHERE 
     -- ,[Product].[Product].[LL Mountain Front Wheel]
     (
       [Date].[Fiscal].[Fiscal Quarter].[Q2 FY 2007]
      ,[Geography].[State-Province].[Virginia]
      ,[Reseller].[Reseller].[Bike Products and Accessories]
-    );
+    )
 
-
+/* Drill-through 3 */
 DRILLTHROUGH 
-  SELECT 
+SELECT 
     (
       [Measures].[Internet Sales Amount]
      ,[Date].[Calendar].[Month].&[2007]&[3]
      ,[Geography].[Geography].[Country].&[United States]
      ,[Product].[Product Categories].[Subcategory].[Mountain Bikes]
     ) ON 0
-  FROM [Adventure Works]
-  RETURN 
+FROM [Adventure Works]
+RETURN 
     Key([$Date].[Date])
    ,Key([$Product].[Style])
    ,[Internet Sales].[Internet Sales Amount]
    ,Key([$Customer].[Customer])
 
-
+/* Drill-through 4 */
 DRILLTHROUGH 
-  SELECT 
+SELECT 
     (
       [Measures].[Internet Sales Amount]
      ,[Date].[Calendar].[Month].&[2007]&[3]
      ,[Geography].[Geography].[Country].&[United States]
      ,[Product].[Product Categories].[Subcategory].[Mountain Bikes]
     ) ON 0
-  FROM [Adventure Works]
-  RETURN 
+FROM [Adventure Works]
+RETURN 
     Key([$Date].[Date])
    ,Name([$Date].[Date])
    ,MemberValue([$Date].[Date])
    ,Caption([$Date].[Date])
    ,UniqueName([$Date].[Date])
-   ,CustomRollup([$Date].[Date])
-   ,customRollupProperties([$Date].[Date])
-   ,UnaryOperator([$Date].[Date])
+   ,CustomRollup([(] Date].[Date])
+   ,customRollupProperties([(] Date].[Date])
+   ,UnaryOperator([(] Date].[Date])
    ,Key([$Product].[Style])
    ,[Internet Sales].[Internet Sales Amount]
    ,Key([$Customer].[Customer])
-   

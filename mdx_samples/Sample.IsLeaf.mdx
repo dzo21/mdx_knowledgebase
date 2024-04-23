@@ -1,8 +1,0 @@
-WITH 
-  MEMBER [Measures].[ISLEAF] AS 
-    IsLeaf([Customer].[Customer Geography].CurrentMember) 
-SELECT 
-  {[Measures].[ISLEAF]} ON 0
- ,{[Customer].[Customer Geography].MEMBERS} ON 1
-FROM [Adventure Works];
-
