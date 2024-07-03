@@ -44,10 +44,6 @@ Contributions to this repository are welcome! Please read our contributing guide
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Contact
-
-For questions or support, please contact [zon@lakehousecat.com](mailto:zon@lakehousecat.com).
-
 ## Acknowledgments
 
 - Hat tip to anyone whose code was used
